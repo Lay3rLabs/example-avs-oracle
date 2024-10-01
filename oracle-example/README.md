@@ -55,6 +55,17 @@ cargo component build --release
 This produces a Wasm component bindary that can be found 
 in the workspace target directory (`../target/wasm32-wasip1/release/oracle_example.wasm`).
 
+## Testing
+
+To run the unit tests, build the component first with:
+```
+cargo component build
+```
+and then:
+```
+cargo test
+```
+
 ## Deploy
 
 Upload the compiled Wasm component to the Wasmatic node.
