@@ -18,32 +18,17 @@ If haven't yet, add the WASI Preview 1 target:
 rustup target add wasm32-wasip1
 ```
 
-Install `cargo-component`:
+Install `cargo-component` and `wkg` CLIs:
 ```
-cargo install cargo-component
+cargo install cargo-component wkg
 ```
 
-The configuration for registry mappings is in the process of getting better,
-but for now, it is manual.
-
-The default location is `$XDG_CONFIG_HOME/wasm-pkg/config.toml` on unix-like systems and
-`{FOLDERID_RoamingAppData}\wasm-pkg\config.toml` on Windows. Examples of this are found below:
-
-| Platform | Path                                            |
-| -------- | ----------------------------------------------- |
-| Linux    | `/home/<username>/.config`                      |
-| macOS    | `/Users/<username>/Library/Application Support` |
-| Windows  | `C:\Users\<username>\AppData\Roaming`           |
-
-The configuration file is TOML and currently must be edited manually. A future release will include
-an interactive CLI for editing the configuration. For more information about configuration, see
+Set default registry configuration:
+```
+wkg config --default-registry wa.dev
+```
+For more information about configuration, see
 the [wkg docs](https://github.com/bytecodealliance/wasm-pkg-tools).
-
-The recommended configuration that will work out of the box:
-
-```toml
-default_registry = "wa.dev"
-```
 
 ## Build
 
