@@ -45,7 +45,7 @@ The recommended configuration that will work out of the box:
 default_registry = "wa.dev"
 ```
 
-## Usage
+## Build
 
 On your CLI, navigate to this directory, then run:
 ```
@@ -53,4 +53,34 @@ cargo component build --release
 ```
 
 This produces a Wasm component bindary that can be found 
-in the workspace target directory (`../../target/wasm32-wasip1/release/oracle_example.wasm`).
+in the workspace target directory (`../target/wasm32-wasip1/release/oracle_example.wasm`).
+
+## Deploy
+
+Upload the compiled Wasm component to the Wasmatic node.
+```
+curl -X POST --data-binary @../target/wasm32-wasip1/release/oracle_example.wasm http://0.0.0.0:8081/upload
+```
+
+Copy the digest SHA returned.
+Choose a unique application name string and use in the placeholder below CURL commands.
+
+```
+read -d '' BODY << "EOF"
+{
+  "name": "{PLACEHOLDER-UNIQUE-NAME}",
+  "digest": "sha256:{DIGEST}",
+  "trigger": {
+    "queue": {
+      "taskQueueAddr": "{TASK-QUEUE-ADDR}",
+      "hdIndex": 1,
+      "pollInterval": 5
+    }
+  },
+  "permissions": {},
+  "envs": []
+}
+EOF
+
+curl -X POST -H "Content-Type: application/json" http://0.0.0.0:8081/app -d "$BODY"
+```
