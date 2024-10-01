@@ -12,7 +12,6 @@ rust-version  = "1.80.0"
 [workspace.dependencies]
 anyhow        = "1"
 layer-wasi = { path = "crates/layer-wasi" }
-slab = "0.4.9"
 url = "2.5.2"
 wasi = "=0.13.1"
 wstd = "=0.4.0"

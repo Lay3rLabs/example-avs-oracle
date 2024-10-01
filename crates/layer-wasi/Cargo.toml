@@ -11,7 +11,6 @@ repository = { workspace = true }
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
-slab = { workspace = true }
 url = { workspace = true }
 wasi = { workspace = true }
 wstd = { workspace = true }
