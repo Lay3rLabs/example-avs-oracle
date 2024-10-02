@@ -1,8 +1,8 @@
 # Simple AVS Oracle example
 
 This component queries the CoinGecko API with a configured `API_KEY` env variable.
-Tracks the recent BTCUSD prices and computes the average price price over the past
-minute and hour.
+Tracks the recent BTCUSD prices and returns the average price price over the past
+hour.
 
 ## Setup
 

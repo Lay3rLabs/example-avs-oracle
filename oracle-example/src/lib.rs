@@ -39,7 +39,7 @@ async fn get_avg_btc(reactor: Reactor) -> Result<Vec<u8>, String> {
     history.record_latest_price(now, price)?;
 
     // calculate average prices
-    let avg_last_minute = history.average(now - 60);
+    let avg_last_minute = history.average(now - 3600);
 
     CalculatedPrices {
         price: avg_last_minute.price.to_string(),
