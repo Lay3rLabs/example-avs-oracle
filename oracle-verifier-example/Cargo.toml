@@ -1,0 +1,41 @@
+[package]
+name = "oracle-verifier"
+version = "0.1.0"
+edition = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+rust-version = { workspace = true }
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+# for more explicit tests, cargo test --features=backtraces
+backtraces = ["cosmwasm-std/backtraces"]
+# use library feature to disable all instantiate/execute/query exports
+library = []
+# Enable this for testing if you want more coverage. Requires properly build artifacts (wasm files)
+golem = ["lavs-orch/golem"]
+
+
+[dependencies]
+cosmwasm-schema  = "1.5.7"
+cosmwasm-std     = { version = "1.5.7", features = ["cosmwasm_1_4"] }
+cw-orch = { version = "0.23.0" }
+cw-storage-plus  = "1.2.0"
+cw-utils         = "1.0.3"
+cw2              = "1.1.2"
+lavs-apis = { git = "https://github.com/Lay3rLabs/avs-toolkit", subdirectory = "packages/apis"}
+schemars         = "0.8.17"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror        = "1.0.59"
+
+[dev-dependencies]
+cw-multi-test = "0.20"
+lavs-orch = { git = "https://github.com/Lay3rLabs/avs-toolkit", subdirectory = "packages/orch"}
+cw-orch = "0.25.0"
+lavs-task-queue = { git = "https://github.com/Lay3rLabs/avs-toolkit", subdirectory = "contracts/task-queue"}
+lavs-mock-operators = { git = "https://github.com/Lay3rLabs/avs-toolkit", subdirectory = "contracts/mock-operators"}

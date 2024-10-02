@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/*", "oracle-example"]
+members = ["crates/*", "oracle-example", "oracle-verifier-example"]
 resolver = "2"
 
 [workspace.package]
