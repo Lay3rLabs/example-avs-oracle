@@ -87,9 +87,9 @@ curl -X POST -H "Content-Type: application/json" http://localhost:8081/app -d "$
 
 ## Testing Deployment
 
-To test the deployed application on the Wasmatic node, you can provide `input` test data
-that your application expects. The server responds with the output of the applicaton without
-sending the result to the chain.
+To test the deployed application on the Wasmatic node, you can use the test endpoint.
+The server responds with the output of the applicaton without sending the result to the chain.
+
 
 ```bash
 curl --request POST \
