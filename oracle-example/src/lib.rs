@@ -40,14 +40,9 @@ async fn get_avg_btc(reactor: Reactor) -> Result<Vec<u8>, String> {
 
     // calculate average prices
     let avg_last_minute = history.average(now - 60);
-    let avg_last_hour = history.average(now - 3600);
 
     CalculatedPrices {
-        btcusd: Price {
-            price,
-            avg_last_minute,
-            avg_last_hour,
-        },
+        price: avg_last_minute.price.to_string(),
     }
     .to_json()
 }
@@ -56,7 +51,7 @@ async fn get_avg_btc(reactor: Reactor) -> Result<Vec<u8>, String> {
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 struct CalculatedPrices {
-    pub btcusd: Price,
+    price: String,
 }
 
 impl CalculatedPrices {
@@ -64,14 +59,6 @@ impl CalculatedPrices {
     fn to_json(&self) -> Result<Vec<u8>, String> {
         serde_json::to_vec(&self).map_err(|err| err.to_string())
     }
-}
-
-#[derive(Serialize, Debug)]
-#[serde(rename_all = "camelCase")]
-struct Price {
-    pub price: f32,
-    pub avg_last_minute: price_history::AveragePrice,
-    pub avg_last_hour: price_history::AveragePrice,
 }
 
 bindings::export!(Component with_types_in bindings);

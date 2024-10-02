@@ -40,6 +40,8 @@ cargo component build --release
 This produces a Wasm component bindary that can be found 
 in the workspace target directory (`../target/wasm32-wasip1/release/oracle_example.wasm`).
 
+Optionally, run `cargo fmt` to format the source and generated files before commiting the code.
+
 ## Testing
 
 To run the unit tests, build the component first with:
