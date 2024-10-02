@@ -83,6 +83,7 @@ mod execute {
     use cosmwasm_std::{to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
     use lavs_apis::{
+        id::TaskId,
         interfaces::voting::{
             QueryMsg as OperatorQueryMsg, TotalPowerResponse, VotingPowerResponse,
         },
@@ -163,7 +164,10 @@ mod execute {
 
             let msg = WasmMsg::Execute {
                 contract_addr: task_queue.to_string(),
-                msg: to_json_binary(&TaskExecuteMsg::Complete { task_id, response })?,
+                msg: to_json_binary(&TaskExecuteMsg::Complete {
+                    task_id: TaskId::new(task_id),
+                    response,
+                })?,
                 funds: vec![],
             };
 

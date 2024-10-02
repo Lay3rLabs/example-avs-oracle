@@ -1488,7 +1488,7 @@ name = "oracle-verifier"
 version = "0.1.0"
 dependencies = [
  "cosmwasm-schema 1.5.8",
- "cosmwasm-std 1.5.8",
+ "cosmwasm-std 2.1.4",
  "cw-multi-test",
  "cw-orch 0.23.0",
  "cw-orch 0.25.1",
