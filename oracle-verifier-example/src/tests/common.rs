@@ -193,7 +193,7 @@ where
     C::Sender: Addressable,
 {
     let msg = TasksInstantiateMsg {
-        requestor: Requestor::Fixed(chain.sender().into()),
+        requestor: Requestor::Fixed(chain.sender_addr().into()),
         timeout: TimeoutInfo::new(600),
         verifier: verifier_addr.to_string(),
     };
