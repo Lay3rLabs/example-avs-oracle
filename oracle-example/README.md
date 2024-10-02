@@ -61,8 +61,13 @@ Upload the compiled Wasm component to the Wasmatic node.
 curl -X POST --data-binary @../target/wasm32-wasip1/release/oracle_example.wasm http://localhost:8081/upload
 ```
 
-Copy the digest SHA returned.
-Choose a unique application name string and use in the placeholder below CURL commands.
+Copy the digest SHA returned and replace the placeholder `{DIGEST}` in the below `curl` command.
+
+This example integrates with the CoinGecko API to retrieve the latest BTCUSD price. You will need to sign up
+and provide an API key, [see instructions](https://docs.coingecko.com/reference/setting-up-your-api-key).
+Replace the `{API_KEY}` below with your key.
+
+Choose a unique application name string and use in the placeholder `{PLACEHOLDER-UNIQUE-NAME}` below `curl` commands.
 
 ```
 read -d '' BODY << "EOF"
@@ -77,7 +82,9 @@ read -d '' BODY << "EOF"
     }
   },
   "permissions": {},
-  "envs": [],
+  "envs": [
+    ["API_KEY", "{API_KEY}"]
+  ],
   "testable": true
 }
 EOF
