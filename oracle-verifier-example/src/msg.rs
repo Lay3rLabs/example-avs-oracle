@@ -11,6 +11,7 @@ pub struct InstantiateMsg {
     pub threshold_percent: Decimal,
     pub allowed_spread: Decimal,
     pub slashable_spread: Decimal,
+    pub required_percentage: u32,
 }
 
 #[cw_serde]

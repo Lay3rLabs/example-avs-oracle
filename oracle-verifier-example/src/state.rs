@@ -1,7 +1,7 @@
 use cosmwasm_schema::cw_serde;
-use cosmwasm_std::{Addr, Decimal, Env, Uint128};
+use cosmwasm_std::{Addr, Decimal, Uint128};
 use cw_storage_plus::{Item, Map};
-use lavs_apis::{id::TaskId, tasks::TaskStatus};
+use lavs_apis::{id::TaskId, verifier_simple::TaskMetadata};
 
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const VOTES: Map<(&Addr, TaskId, &Addr), OperatorVote> = Map::new("operator_votes");
@@ -14,26 +14,12 @@ pub struct Config {
     pub threshold_percent: Decimal,
     pub allowed_spread: Decimal,
     pub slashable_spread: Decimal,
+    pub required_percentage: u32,
 }
 
 #[cw_serde]
 pub struct PriceResult {
     pub price: Decimal,
-}
-
-#[cw_serde]
-pub struct TaskMetadata {
-    pub power_required: Uint128,
-    pub status: TaskStatus,
-    pub created_height: u64,
-    /// Measured in UNIX seconds
-    pub expires_time: u64,
-}
-
-impl TaskMetadata {
-    pub fn is_expired(&self, env: &Env) -> bool {
-        env.block.time.seconds() >= self.expires_time
-    }
 }
 
 #[cw_serde]

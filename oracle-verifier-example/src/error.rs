@@ -1,5 +1,6 @@
 use cosmwasm_std::{Decimal, StdError};
 use cw_utils::PaymentError;
+use lavs_helpers::verifier::VerifierError;
 use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ContractError {
@@ -35,4 +36,7 @@ pub enum ContractError {
 
     #[error("Invalid spread configuration. Slashable: {0}. Allowed: {1}.")]
     InvalidSpread(Decimal, Decimal),
+
+    #[error("{0}")]
+    Verifier(#[from] VerifierError),
 }

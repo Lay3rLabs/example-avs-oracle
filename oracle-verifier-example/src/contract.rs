@@ -27,6 +27,7 @@ pub fn instantiate(
         threshold_percent: msg.threshold_percent,
         allowed_spread: msg.allowed_spread,
         slashable_spread: msg.slashable_spread,
+        required_percentage: msg.required_percentage,
     };
 
     CONFIG.save(deps.storage, &config)?;
@@ -84,14 +85,12 @@ mod execute {
     use cw_utils::nonpayable;
     use lavs_apis::{
         id::TaskId,
-        interfaces::voting::{
-            QueryMsg as OperatorQueryMsg, TotalPowerResponse, VotingPowerResponse,
-        },
-        tasks::{TaskExecuteMsg, TaskQueryMsg, TaskStatus, TaskStatusResponse},
+        tasks::{TaskExecuteMsg, TaskStatus},
     };
+    use lavs_helpers::verifier::ensure_valid_vote;
     use serde_json::from_str;
 
-    use crate::state::{OperatorVote, PriceResult, TaskMetadata, SLASHED_OPERATORS, TASKS, VOTES};
+    use crate::state::{OperatorVote, PriceResult, SLASHED_OPERATORS, TASKS, VOTES};
 
     use super::*;
 
@@ -109,12 +108,21 @@ mod execute {
         let task_queue = deps.api.addr_validate(&task_queue_contract)?;
         let operator = info.sender;
 
+        let config = CONFIG.load(deps.storage)?;
+
         // operator allowed to vote and hasn't voted yet
-        let (mut task_data, power) =
-            match ensure_valid_vote(deps.branch(), &env, &task_queue, task_id, &operator)? {
-                Some(x) => x,
-                None => return Ok(Response::default()),
-            };
+        let (mut task_data, power) = match ensure_valid_vote(
+            deps.branch(),
+            &env,
+            &task_queue,
+            task_id,
+            &operator,
+            config.required_percentage,
+            &config.operators,
+        )? {
+            Some(x) => x,
+            None => return Ok(Response::default()),
+        };
 
         let price_result: PriceResult = from_str(&result)?;
         if price_result.price.is_zero() {
@@ -256,99 +264,6 @@ mod execute {
         SLASHED_OPERATORS.save(deps.storage, operator, &true)?;
         //TODO: this should make an actual call to slash
         Ok(())
-    }
-
-    //TODO: this is 1:1 from `verifier-simple` we can move this in a library function
-    fn ensure_valid_vote(
-        mut deps: DepsMut,
-        env: &Env,
-        task_queue: &Addr,
-        task_id: TaskId,
-        operator: &Addr,
-    ) -> Result<Option<(TaskMetadata, Uint128)>, ContractError> {
-        // Operator has not submitted a vote yet
-        let vote = VOTES.may_load(deps.storage, (task_queue, task_id, operator))?;
-        if vote.is_some() {
-            return Err(ContractError::OperatorAlreadyVoted(operator.to_string()));
-        }
-
-        // get config for future queries
-        let config = CONFIG.load(deps.storage)?;
-
-        // Load task info, or create it if not there
-        // Error here means the contract is in expired or completed, return None rather than error
-        let metadata =
-            match load_or_initialize_metadata(deps.branch(), env, &config, task_queue, task_id) {
-                Ok(x) => x,
-                Err(_) => return Ok(None),
-            };
-
-        // Get the operators voting power at time of vote creation
-        let power: VotingPowerResponse = deps.querier.query_wasm_smart(
-            config.operators.to_string(),
-            &OperatorQueryMsg::VotingPowerAtHeight {
-                address: operator.to_string(),
-                height: Some(metadata.created_height),
-            },
-        )?;
-        if power.power.is_zero() {
-            return Err(ContractError::Unauthorized);
-        }
-
-        Ok(Some((metadata, power.power)))
-    }
-
-    fn load_or_initialize_metadata(
-        deps: DepsMut,
-        env: &Env,
-        config: &Config,
-        task_queue: &Addr,
-        task_id: TaskId,
-    ) -> Result<TaskMetadata, ContractError> {
-        let metadata = TASKS.may_load(deps.storage, (task_queue, task_id))?;
-        match metadata {
-            Some(meta) => {
-                // Ensure this is not yet expired (or completed)
-                match meta.status {
-                    TaskStatus::Completed => Err(ContractError::TaskAlreadyCompleted),
-                    TaskStatus::Expired => Err(ContractError::TaskExpired),
-                    TaskStatus::Open if meta.is_expired(env) => Err(ContractError::TaskExpired),
-                    _ => Ok(meta),
-                }
-            }
-            None => {
-                // We need to query the info from the task queue
-                let task_status: TaskStatusResponse = deps.querier.query_wasm_smart(
-                    task_queue.to_string(),
-                    &TaskQueryMsg::TaskStatus { id: task_id },
-                )?;
-                // Abort early if not still open
-                match task_status.status {
-                    TaskStatus::Completed => Err(ContractError::TaskAlreadyCompleted),
-                    TaskStatus::Expired => Err(ContractError::TaskExpired),
-                    TaskStatus::Open => {
-                        // If we create this, we need to calculate total vote power needed
-                        let total_power: TotalPowerResponse = deps.querier.query_wasm_smart(
-                            config.operators.to_string(),
-                            &OperatorQueryMsg::TotalPowerAtHeight {
-                                height: Some(task_status.created_height),
-                            },
-                        )?;
-                        // need to round up!
-                        let fraction = config.threshold_percent;
-                        let power_required = total_power.power.mul_ceil(fraction);
-                        let meta = TaskMetadata {
-                            power_required,
-                            status: TaskStatus::Open,
-                            created_height: task_status.created_height,
-                            expires_time: task_status.expires_time,
-                        };
-                        TASKS.save(deps.storage, (task_queue, task_id), &meta)?;
-                        Ok(meta)
-                    }
-                }
-            }
-        }
     }
 
     pub(crate) fn process_votes(
@@ -1033,6 +948,7 @@ mod tests {
             threshold_percent: Decimal::percent(50),
             allowed_spread: Decimal::percent(10),
             slashable_spread: Decimal::percent(20),
+            required_percentage: 70,
         };
 
         // mocking the power
@@ -1074,6 +990,7 @@ mod tests {
             threshold_percent: Decimal::percent(80),
             allowed_spread: Decimal::percent(10),
             slashable_spread: Decimal::percent(20),
+            required_percentage: 70,
         };
 
         // mocking the power
@@ -1123,6 +1040,7 @@ mod tests {
             threshold_percent: Decimal::from_str("0.33").unwrap(),
             allowed_spread: Decimal::from_str("0.1").unwrap(),
             slashable_spread: Decimal::from_str("0.2").unwrap(),
+            required_percentage: 70,
         };
 
         // mocking the power
@@ -1150,6 +1068,7 @@ mod tests {
             threshold_percent: Decimal::percent(50),
             allowed_spread: Decimal::percent(10),
             slashable_spread: Decimal::percent(20),
+            required_percentage: 70,
         };
 
         let votes = vec![
@@ -1210,6 +1129,7 @@ mod tests {
             threshold_percent: Decimal::percent(100),
             allowed_spread: Decimal::percent(10),
             slashable_spread: Decimal::percent(20),
+            required_percentage: 70,
         };
 
         let votes = vec![
@@ -1258,6 +1178,7 @@ mod tests {
             threshold_percent: Decimal::percent(80),
             allowed_spread: Decimal::percent(10),
             slashable_spread: Decimal::percent(20),
+            required_percentage: 70,
         };
 
         let votes = vec![
@@ -1306,6 +1227,7 @@ mod tests {
             threshold_percent: Decimal::percent(100),
             allowed_spread: Decimal::percent(50),
             slashable_spread: Decimal::percent(60),
+            required_percentage: 70,
         };
 
         let votes = vec![

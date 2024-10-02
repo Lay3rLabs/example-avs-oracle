@@ -66,6 +66,7 @@ where
         threshold_percent: Decimal::percent(100),
         allowed_spread: Decimal::percent(10),
         slashable_spread: Decimal::percent(20),
+        required_percentage: 100,
     };
     let oracle_verifier = setup(chain.clone(), msg);
 
@@ -139,6 +140,7 @@ where
         threshold_percent: Decimal::percent(90),
         allowed_spread: Decimal::percent(5),
         slashable_spread: Decimal::percent(10),
+        required_percentage: 70,
     };
     let verifier = setup(chain.clone(), msg);
 
