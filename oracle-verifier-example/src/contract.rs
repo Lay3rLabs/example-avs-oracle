@@ -82,7 +82,7 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
 mod execute {
     use cosmwasm_std::{to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
-    use lch_apis::{
+    use lavs_apis::{
         interfaces::voting::{
             QueryMsg as OperatorQueryMsg, TotalPowerResponse, VotingPowerResponse,
         },

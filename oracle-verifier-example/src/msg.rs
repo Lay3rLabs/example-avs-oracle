@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Decimal};
 use cw_orch::ExecuteFns;
-use lch_apis::verifier_simple::OperatorVoteInfoResponse;
+use lavs_apis::verifier_simple::OperatorVoteInfoResponse;
 
 use crate::{state::Config, ContractError};
 

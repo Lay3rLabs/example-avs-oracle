@@ -17,7 +17,8 @@ backtraces = ["cosmwasm-std/backtraces"]
 # use library feature to disable all instantiate/execute/query exports
 library = []
 # Enable this for testing if you want more coverage. Requires properly build artifacts (wasm files)
-golem = ["lavs-orch/golem"]
+#FIXME: import properly
+# golem = ["lavs-orch/golem"]
 
 
 [dependencies]
