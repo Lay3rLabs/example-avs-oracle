@@ -148,15 +148,15 @@ mod execute {
         let (median, slashable_operators, is_threshold_met) =
             process_votes(&all_votes, total_power, &config)?;
 
-        for operator in slashable_operators {
-            noop_slash_validator(&mut deps, &operator)?;
-        }
-
         task_data.status = TaskStatus::Completed;
         TASKS.save(deps.storage, (&task_queue, task_id), &task_data)?;
 
         let mut resp = Response::new();
         if is_threshold_met {
+            for operator in slashable_operators {
+                noop_slash_validator(&mut deps, &operator)?;
+            }
+
             task_data.status = TaskStatus::Completed;
             TASKS.save(deps.storage, (&task_queue, task_id), &task_data)?;
 
