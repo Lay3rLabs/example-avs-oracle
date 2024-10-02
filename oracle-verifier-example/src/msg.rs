@@ -1,7 +1,7 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::{Addr, Decimal};
 use cw_orch::ExecuteFns;
-use lavs_apis::verifier_simple::OperatorVoteInfoResponse;
+use lavs_apis::{id::TaskId, verifier_simple::OperatorVoteInfoResponse};
 
 use crate::{state::Config, ContractError};
 
@@ -21,7 +21,7 @@ pub enum ExecuteMsg {
         /// Task queue contract for which we completed the task
         task_queue_contract: String,
         /// The ID of the task that was completed
-        task_id: u64,
+        task_id: TaskId,
         /// The result of the task, (JSON) serialized as a string
         /// It is serialized to allow for easy comparison and to avoid field sorting issues when verifying signatures
         result: String,
@@ -38,7 +38,7 @@ pub enum QueryMsg {
         /// The task contract we are interested in
         task_contract: String,
         /// The ID of the task we are interested in
-        task_id: u64,
+        task_id: TaskId,
         /// The operator whose vote we are interested in
         operator: String,
     },

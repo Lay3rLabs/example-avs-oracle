@@ -100,7 +100,7 @@ mod execute {
         env: Env,
         info: MessageInfo,
         task_queue_contract: String,
-        task_id: u64,
+        task_id: TaskId,
         result: String,
     ) -> Result<Response, ContractError> {
         nonpayable(&info)?;
@@ -164,10 +164,7 @@ mod execute {
 
             let msg = WasmMsg::Execute {
                 contract_addr: task_queue.to_string(),
-                msg: to_json_binary(&TaskExecuteMsg::Complete {
-                    task_id: TaskId::new(task_id),
-                    response,
-                })?,
+                msg: to_json_binary(&TaskExecuteMsg::Complete { task_id, response })?,
                 funds: vec![],
             };
 
@@ -266,7 +263,7 @@ mod execute {
         mut deps: DepsMut,
         env: &Env,
         task_queue: &Addr,
-        task_id: u64,
+        task_id: TaskId,
         operator: &Addr,
     ) -> Result<Option<(TaskMetadata, Uint128)>, ContractError> {
         // Operator has not submitted a vote yet
@@ -306,7 +303,7 @@ mod execute {
         env: &Env,
         config: &Config,
         task_queue: &Addr,
-        task_id: u64,
+        task_id: TaskId,
     ) -> Result<TaskMetadata, ContractError> {
         let metadata = TASKS.may_load(deps.storage, (task_queue, task_id))?;
         match metadata {

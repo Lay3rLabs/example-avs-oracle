@@ -1,11 +1,11 @@
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, Env, Uint128};
 use cw_storage_plus::{Item, Map};
-use lavs_apis::tasks::TaskStatus;
+use lavs_apis::{id::TaskId, tasks::TaskStatus};
 
 pub const CONFIG: Item<Config> = Item::new("config");
-pub const VOTES: Map<(&Addr, u64, &Addr), OperatorVote> = Map::new("operator_votes");
-pub const TASKS: Map<(&Addr, u64), TaskMetadata> = Map::new("tasks");
+pub const VOTES: Map<(&Addr, TaskId, &Addr), OperatorVote> = Map::new("operator_votes");
+pub const TASKS: Map<(&Addr, TaskId), TaskMetadata> = Map::new("tasks");
 pub const SLASHED_OPERATORS: Map<&Addr, bool> = Map::new("slashed_operators");
 
 #[cw_serde]

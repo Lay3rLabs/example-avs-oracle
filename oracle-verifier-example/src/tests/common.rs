@@ -4,18 +4,23 @@ use cosmwasm_std::Decimal;
 use cw_orch::environment::{ChainState, CwEnv};
 use cw_orch::prelude::*;
 
-use lch_apis::tasks::{Requestor, Status, TimeoutInfo};
-use lch_orch::{Addressable, AltSigner};
+use lavs_apis::id::TaskId;
+use lavs_apis::tasks::{Requestor, Status, TimeoutInfo};
+use lavs_orch::{Addressable, AltSigner};
 use serde_json::json;
 
-use lavs_tasks::interface::Contract as TasksContract;
-use lavs_tasks::msg::{
-    CustomExecuteMsgFns as TasksExecuteMsgFns, CustomQueryMsgFns as TasksQueryMsgFns,
-    InstantiateMsg as TasksInstantiateMsg,
+use lavs_task_queue::{
+    interface::Contract as TasksContract,
+    msg::{
+        CustomExecuteMsgFns as TasksExecuteMsgFns, CustomQueryMsgFns as TasksQueryMsgFns,
+        InstantiateMsg as TasksInstantiateMsg,
+    },
 };
 
-use lavs_mock_voting::interface::Contract as MockOperatorsContract;
-use lavs_mock_voting::msg::InstantiateMsg as MockOperatorsInstantiateMsg;
+use lavs_mock_operators::interface::Contract as MockOperatorsContract;
+use lavs_mock_operators::msg::{
+    InstantiateMsg as MockOperatorsInstantiateMsg, InstantiateOperator,
+};
 
 use crate::interface::Contract;
 use crate::msg::{ExecuteMsgFns, InstantiateMsg, QueryMsgFns};
@@ -25,7 +30,7 @@ pub const BECH_PREFIX: &str = "slay3r";
 pub fn setup<Chain: CwEnv>(chain: Chain, msg: InstantiateMsg) -> Contract<Chain> {
     let contract = Contract::new(chain);
     contract.upload().unwrap();
-    contract.instantiate(&msg, None, None).unwrap();
+    contract.instantiate(&msg, None, &[]).unwrap();
     contract
 }
 
@@ -40,9 +45,18 @@ where
     let operator3 = chain.alt_signer(5);
 
     let operators = vec![
-        (operator1.addr().to_string(), 50u64),
-        (operator2.addr().to_string(), 30u64),
-        (operator3.addr().to_string(), 20u64),
+        InstantiateOperator {
+            addr: operator1.addr().to_string(),
+            voting_power: 50u32,
+        },
+        InstantiateOperator {
+            addr: operator2.addr().to_string(),
+            voting_power: 30u32,
+        },
+        InstantiateOperator {
+            addr: operator3.addr().to_string(),
+            voting_power: 20u32,
+        },
     ];
     let mock_operators = setup_mock_operators(chain.clone(), operators);
 
@@ -105,9 +119,18 @@ where
     let operator3 = chain.alt_signer(5);
 
     let operators = vec![
-        (operator1.addr().to_string(), 50u64),
-        (operator2.addr().to_string(), 30u64),
-        (operator3.addr().to_string(), 20u64),
+        InstantiateOperator {
+            addr: operator1.addr().to_string(),
+            voting_power: 50u32,
+        },
+        InstantiateOperator {
+            addr: operator2.addr().to_string(),
+            voting_power: 30u32,
+        },
+        InstantiateOperator {
+            addr: operator3.addr().to_string(),
+            voting_power: 20u32,
+        },
     ];
     let mock_operators = setup_mock_operators(chain.clone(), operators);
 
@@ -147,7 +170,7 @@ pub fn make_task<C: ChainState + TxHandler>(
     name: &str,
     timeout: impl Into<Option<u64>>,
     payload: &serde_json::Value,
-) -> u64 {
+) -> TaskId {
     let res = contract
         .create(name.to_string(), timeout.into(), payload.clone(), &[])
         .unwrap();
@@ -155,11 +178,13 @@ pub fn make_task<C: ChainState + TxHandler>(
 }
 
 #[track_caller]
-pub fn get_task_id(res: &impl IndexResponse) -> u64 {
-    res.event_attr_value("wasm", "task_id")
+pub fn get_task_id(res: &impl IndexResponse) -> TaskId {
+    let id = res
+        .event_attr_value("wasm", "task_id")
         .unwrap()
         .parse()
-        .unwrap()
+        .unwrap();
+    TaskId::new(id)
 }
 
 pub fn setup_task_queue<C>(chain: C, verifier_addr: &str) -> TasksContract<C>
@@ -174,11 +199,14 @@ where
     };
     let tasker = TasksContract::new(chain);
     tasker.upload().unwrap();
-    tasker.instantiate(&msg, None, None).unwrap();
+    tasker.instantiate(&msg, None, &[]).unwrap();
     tasker
 }
 
-pub fn setup_mock_operators<C>(chain: C, operators: Vec<(String, u64)>) -> MockOperatorsContract<C>
+pub fn setup_mock_operators<C>(
+    chain: C,
+    operators: Vec<InstantiateOperator>,
+) -> MockOperatorsContract<C>
 where
     C: CwEnv + AltSigner,
     C::Sender: Addressable,
@@ -186,6 +214,6 @@ where
     let msg = MockOperatorsInstantiateMsg { operators };
     let mock_operators = MockOperatorsContract::new(chain);
     mock_operators.upload().unwrap();
-    mock_operators.instantiate(&msg, None, None).unwrap();
+    mock_operators.instantiate(&msg, None, &[]).unwrap();
     mock_operators
 }
