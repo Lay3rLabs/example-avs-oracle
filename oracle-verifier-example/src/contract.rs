@@ -296,8 +296,6 @@ mod execute {
 
 #[cfg(test)]
 mod tests {
-    // TODO add tests for fileting valid votes, mediant, allowed range etc (all the helper fns)
-
     use std::str::FromStr;
 
     use crate::state::OperatorVote;
