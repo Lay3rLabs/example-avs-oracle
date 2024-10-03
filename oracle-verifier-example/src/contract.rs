@@ -214,12 +214,14 @@ mod execute {
 
     pub(crate) fn filter_valid_votes(
         votes: &[(Addr, OperatorVote)],
-        allowed_minimum: Decimal,
-        allowed_maximum: Decimal,
+        allowed_minimum_price: Decimal,
+        allowed_maximum_price: Decimal,
     ) -> Vec<&(Addr, OperatorVote)> {
         votes
             .iter()
-            .filter(|(_, vote)| vote.price >= allowed_minimum && vote.price <= allowed_maximum)
+            .filter(|(_, vote)| {
+                vote.price >= allowed_minimum_price && vote.price <= allowed_maximum_price
+            })
             .collect()
     }
 
