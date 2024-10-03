@@ -27,7 +27,7 @@ pub fn instantiate(
         ("slashable_spread", &msg.slashable_spread),
     ];
 
-    // checking if our fields are within 0..=100 bounds
+    // checking if our fields are within valid 0..=100 bounds
     for (field_name, value) in fields.into_iter() {
         if *value == Decimal::zero() || value > &Decimal::percent(100) {
             return Err(ContractError::InvalidPercentage(
@@ -389,7 +389,7 @@ mod tests {
                 Decimal::percent(13),
             ];
             let median = calculate_median(&mut values);
-            // median should be 1.2
+            // median should be 0.12
             assert_eq!(median, Decimal::percent(12));
         }
 
