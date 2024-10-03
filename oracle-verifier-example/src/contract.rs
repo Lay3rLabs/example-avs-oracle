@@ -70,13 +70,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             task_contract,
             task_id,
             operator,
-        } => {
-            let task_addr = deps.api.addr_validate(&task_contract)?;
-            let operator_addr = deps.api.addr_validate(&operator)?;
-            // Load the operator's vote for the given task
-            let vote = VOTES.may_load(deps.storage, (&task_addr, task_id, &operator_addr))?;
-            to_json_binary(&vote)
-        }
+        } => to_json_binary(&query::query_operator_vote(
+            deps,
+            task_contract,
+            task_id,
+            operator,
+        )?),
     }
 }
 
@@ -288,6 +287,26 @@ mod execute {
             identify_slashable_operators(votes, slashable_minimum, slashable_maximum);
 
         Ok((median, slashable_operators, is_threshold_met))
+    }
+}
+
+mod query {
+    use lavs_apis::id::TaskId;
+
+    use crate::state::OperatorVote;
+
+    use super::*;
+
+    pub(crate) fn query_operator_vote(
+        deps: Deps,
+        task_contract: String,
+        task_id: TaskId,
+        operator: String,
+    ) -> StdResult<Option<OperatorVote>> {
+        let task_addr = deps.api.addr_validate(&task_contract)?;
+        let operator_addr = deps.api.addr_validate(&operator)?;
+        // Load the operator's vote for the given task
+        VOTES.may_load(deps.storage, (&task_addr, task_id, &operator_addr))
     }
 }
 
