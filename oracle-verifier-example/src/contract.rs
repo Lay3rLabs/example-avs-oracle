@@ -166,10 +166,9 @@ mod execute {
 
         let total_power: Uint128 = all_votes.iter().map(|(_, vote)| vote.power).sum();
 
+        let mut resp = Response::new().add_attribute("method", "executed_task");
         if total_power < task_data.power_required {
-            return Ok(Response::new()
-                .add_attribute("method", "executed_task")
-                .add_attribute("status", "vote_stored"));
+            return Ok(resp.add_attribute("status", "vote_stored"));
         }
 
         let config = CONFIG.load(deps.storage)?;
@@ -177,7 +176,6 @@ mod execute {
         let (median, slashable_operators, is_threshold_met) =
             process_votes(&all_votes, total_power, &config)?;
 
-        let mut resp = Response::new();
         if is_threshold_met {
             for operator in slashable_operators {
                 noop_slash_validator(&mut deps, &operator)?;
@@ -202,7 +200,6 @@ mod execute {
         }
 
         resp = resp
-            .add_attribute("method", "executed_task")
             .add_attribute("task_id", task_id.to_string())
             .add_attribute("task_queue_contract", task_queue_contract);
 
@@ -432,25 +429,24 @@ mod tests {
         #[test]
         fn calculate_median_of_fib_unsorted() {
             let mut values = vec![
-                Decimal::from_str("34").unwrap(),
-                Decimal::from_str("2").unwrap(),
-                Decimal::from_str("55").unwrap(),
-                Decimal::from_str("5").unwrap(),
-                Decimal::from_str("8").unwrap(),
-                Decimal::from_str("13").unwrap(),
-                Decimal::from_str("3").unwrap(),
-                Decimal::from_str("21").unwrap(),
-                Decimal::from_str("144").unwrap(),
-                Decimal::from_str("1").unwrap(),
-                Decimal::from_str("89").unwrap(),
-                Decimal::from_str("8").unwrap(),
+                Decimal::percent(340),
+                Decimal::percent(20),
+                Decimal::percent(550),
+                Decimal::percent(50),
+                Decimal::percent(80),
+                Decimal::percent(130),
+                Decimal::percent(30),
+                Decimal::percent(210),
+                Decimal::percent(1440),
+                Decimal::percent(10),
+                Decimal::percent(890),
+                Decimal::percent(80),
             ];
 
-            // this will be sorted to
-            // 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144
-            // (8 + 13) / 2
+            // This will be sorted to:
+            // 0.10, 0.20, 0.30, 0.50, 0.80, 0.80, 1.30, 2.10, 3.40, 5.50, 8.90, 14.40
             let median = calculate_median(&mut values);
-            assert_eq!(median, Decimal::from_str("10.5").unwrap()) // 10.5
+            assert_eq!(median, Decimal::percent(105)) // 1.05
         }
 
         #[test]
