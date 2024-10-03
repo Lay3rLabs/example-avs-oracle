@@ -48,32 +48,3 @@ pub enum QueryMsg {
     #[returns(Config)]
     Config {},
 }
-
-impl InstantiateMsg {
-    pub fn validate_percentages(&self) -> Result<(), ContractError> {
-        let fields = [
-            ("threshold_percent", &self.threshold_percent),
-            ("allowed_spread", &self.allowed_spread),
-            ("slashable_spread", &self.slashable_spread),
-        ];
-
-        // Check if any field has a value of zero or above 1 percent and return an error
-        for (field_name, value) in fields.into_iter() {
-            if *value == Decimal::zero() || value > &Decimal::percent(100) {
-                return Err(ContractError::InvalidPercentage(
-                    field_name.to_string(),
-                    *value,
-                ));
-            }
-        }
-
-        if self.slashable_spread <= self.allowed_spread {
-            return Err(ContractError::InvalidSpread(
-                self.slashable_spread,
-                self.allowed_spread,
-            ));
-        }
-
-        Ok(())
-    }
-}

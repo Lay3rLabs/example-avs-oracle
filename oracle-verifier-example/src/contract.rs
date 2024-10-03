@@ -1,7 +1,8 @@
 #[cfg(not(feature = "library"))]
 use cosmwasm_std::entry_point;
 use cosmwasm_std::{
-    to_json_binary, Addr, Binary, Deps, DepsMut, Env, MessageInfo, Order, Response, StdResult,
+    to_json_binary, Addr, Binary, Decimal, Deps, DepsMut, Env, MessageInfo, Order, Response,
+    StdResult,
 };
 use cw2::set_contract_version;
 
@@ -20,7 +21,28 @@ pub fn instantiate(
     _info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    msg.validate_percentages()?;
+    let fields = [
+        ("threshold_percent", &msg.threshold_percent),
+        ("allowed_spread", &msg.allowed_spread),
+        ("slashable_spread", &msg.slashable_spread),
+    ];
+
+    // checking if our fields are within 0..=100 bounds
+    for (field_name, value) in fields.into_iter() {
+        if *value == Decimal::zero() || value > &Decimal::percent(100) {
+            return Err(ContractError::InvalidPercentage(
+                field_name.to_string(),
+                *value,
+            ));
+        }
+    }
+
+    if msg.slashable_spread <= msg.allowed_spread {
+        return Err(ContractError::InvalidSpread(
+            msg.slashable_spread,
+            msg.allowed_spread,
+        ));
+    }
     let op_addr = deps.api.addr_validate(&msg.operator_contract)?;
     let config = Config {
         operators: op_addr,
