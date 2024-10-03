@@ -184,14 +184,8 @@ mod execute {
             .add_attribute("task_id", task_id.to_string())
             .add_attribute("task_queue_contract", task_queue_contract);
 
-        // NOTE: If we ever want to optimize the storage:
-        //let operator_keys: Vec<Addr> = VOTES
-        //    .prefix((&task_queue, task_id))
-        //    .keys(deps.storage, None, None, Order::Ascending)
-        //    .collect::<StdResult<Vec<_>>>()?;
-        //for operator in operator_keys {
-        //    VOTES.remove(deps.storage, (&task_queue, task_id, &operator));
-        //}
+        // NOTE: If we ever want to optimize the storage we can remove the votes for the completed
+        // tasks.
 
         Ok(resp)
     }
