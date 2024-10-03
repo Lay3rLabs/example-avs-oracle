@@ -191,11 +191,11 @@ mod execute {
     }
 
     pub(crate) fn calculate_median(values: &mut [Decimal]) -> Decimal {
-        values.sort();
-
         if values.is_empty() {
             return Decimal::zero();
         }
+
+        values.sort();
 
         if values.len() % 2 == 0 {
             // first half                 + // second half              // divided by 2
