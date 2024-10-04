@@ -1220,6 +1220,7 @@ dependencies = [
 [[package]]
 name = "layer-wasi"
 version = "0.1.0"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit#6037fe3f5a15403d4ee8e79059f144a794938d02"
 dependencies = [
  "serde",
  "serde_json",
