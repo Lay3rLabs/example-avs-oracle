@@ -3,7 +3,7 @@ use cosmwasm_std::{Addr, Decimal};
 use cw_orch::ExecuteFns;
 use lavs_apis::{id::TaskId, verifier_simple::OperatorVoteInfoResponse};
 
-use crate::{state::Config, ContractError};
+use crate::state::Config;
 
 #[cw_serde]
 pub struct InstantiateMsg {

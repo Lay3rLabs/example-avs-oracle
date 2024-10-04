@@ -10,7 +10,7 @@ pub const SLASHED_OPERATORS: Map<&Addr, bool> = Map::new("slashed_operators");
 
 #[cw_serde]
 pub struct Config {
-    pub operators: Addr,
+    pub operator_contract: Addr,
     pub threshold_percent: Decimal,
     pub allowed_spread: Decimal,
     pub slashable_spread: Decimal,

@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use cosmwasm_std::Decimal;
 use cw_orch::environment::{ChainState, CwEnv};
 use cw_orch::prelude::*;

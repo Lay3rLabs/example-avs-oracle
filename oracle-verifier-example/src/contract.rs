@@ -45,7 +45,7 @@ pub fn instantiate(
     }
     let op_addr = deps.api.addr_validate(&msg.operator_contract)?;
     let config = Config {
-        operators: op_addr,
+        operator_contract: op_addr,
         threshold_percent: msg.threshold_percent,
         allowed_spread: msg.allowed_spread,
         slashable_spread: msg.slashable_spread,
@@ -139,7 +139,7 @@ mod execute {
             task_id,
             &operator,
             config.required_percentage,
-            &config.operators,
+            &config.operator_contract,
         )? {
             Some(x) => x,
             None => return Ok(Response::default()),
@@ -327,8 +327,6 @@ mod query {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use crate::state::OperatorVote;
 
     use super::*;
@@ -972,7 +970,7 @@ mod tests {
             ];
 
             let config = Config {
-                operators: Addr::unchecked("operators"),
+                operator_contract: Addr::unchecked("operators"),
                 threshold_percent: Decimal::percent(50),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1014,7 +1012,7 @@ mod tests {
             ];
 
             let config = Config {
-                operators: Addr::unchecked("operators"),
+                operator_contract: Addr::unchecked("operators"),
                 threshold_percent: Decimal::percent(80),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1064,7 +1062,7 @@ mod tests {
             ];
 
             let config = Config {
-                operators: Addr::unchecked("operators"),
+                operator_contract: Addr::unchecked("operators"),
                 threshold_percent: Decimal::percent(33),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1092,7 +1090,7 @@ mod tests {
             let total_power = Uint128::new(100);
 
             let config = Config {
-                operators: Addr::unchecked("operator_contract"),
+                operator_contract: Addr::unchecked("operator_contract"),
                 threshold_percent: Decimal::percent(50),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1156,7 +1154,7 @@ mod tests {
             let total_power = Uint128::new(100);
 
             let config = Config {
-                operators: Addr::unchecked("operator_contract"),
+                operator_contract: Addr::unchecked("operator_contract"),
                 threshold_percent: Decimal::one(),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1205,7 +1203,7 @@ mod tests {
             let total_power = Uint128::new(100);
 
             let config = Config {
-                operators: Addr::unchecked("operator_contract"),
+                operator_contract: Addr::unchecked("operator_contract"),
                 threshold_percent: Decimal::percent(80),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
@@ -1255,7 +1253,7 @@ mod tests {
             let total_power = Uint128::new(100);
 
             let config = Config {
-                operators: Addr::unchecked("operator_contract"),
+                operator_contract: Addr::unchecked("operator_contract"),
                 threshold_percent: Decimal::one(),
                 allowed_spread: Decimal::percent(50),
                 slashable_spread: Decimal::percent(60),
