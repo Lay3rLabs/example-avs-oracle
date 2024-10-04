@@ -112,7 +112,6 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
-    use std::str::FromStr;
 
     use cosmwasm_std::{from_json, to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
@@ -191,7 +190,7 @@ mod execute {
             task_data.status = TaskStatus::Completed;
             TASKS.save(deps.storage, (&task_queue, task_id), &task_data)?;
 
-            let response: ResponseType = from_json(&result)?;
+            let response: ResponseType = from_json(&median)?;
 
             let msg = WasmMsg::Execute {
                 contract_addr: task_queue.to_string(),

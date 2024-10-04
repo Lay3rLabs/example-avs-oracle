@@ -5,8 +5,6 @@ use cosmwasm_std::{Addr, Decimal, StdError, Storage, Uint128};
 use cw_storage_plus::{Item, Map};
 use lavs_apis::{id::TaskId, verifier_simple::TaskMetadata};
 
-use crate::ContractError;
-
 pub const CONFIG: Item<Config> = Item::new("config");
 pub const VOTES: Map<(&Addr, TaskId, &Addr), OperatorVote> = Map::new("operator_votes");
 pub const TASKS: Map<(&Addr, TaskId), TaskMetadata> = Map::new("tasks");
