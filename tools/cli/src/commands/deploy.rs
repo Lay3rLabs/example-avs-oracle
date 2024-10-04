@@ -1,5 +1,6 @@
 use crate::{args::DeployTaskRequestor, config::load_wasmatic_address, context::AppContext};
 use anyhow::{anyhow, bail, Result};
+use cosmwasm_std::Decimal;
 use lavs_task_queue::msg::{Requestor, TimeoutInfo};
 use layer_climb::prelude::*;
 use std::path::PathBuf;
@@ -12,6 +13,9 @@ pub struct DeployContractArgs {
     requestor: Requestor,
     task_timeout: TimeoutInfo,
     required_voting_percentage: u32,
+    threshold_percentage: Decimal,
+    allowed_spread: Decimal,
+    slashable_spread: Decimal,
 }
 
 impl DeployContractArgs {
@@ -20,6 +24,9 @@ impl DeployContractArgs {
         artifacts_path: PathBuf,
         task_timeout_seconds: u64,
         required_voting_percentage: u32,
+        threshold_percentage: Decimal,
+        allowed_spread: Decimal,
+        slashable_spread: Decimal,
         operators: Vec<String>,
         requestor: DeployTaskRequestor,
     ) -> Result<Self> {
@@ -72,6 +79,9 @@ impl DeployContractArgs {
             requestor,
             task_timeout,
             required_voting_percentage,
+            threshold_percentage,
+            allowed_spread,
+            slashable_spread,
         })
     }
 }
@@ -88,6 +98,9 @@ pub async fn deploy_contracts(
         requestor,
         task_timeout,
         required_voting_percentage,
+        threshold_percentage,
+        allowed_spread,
+        slashable_spread,
     } = args;
 
     let wasm_files = WasmFiles::read(artifacts_path.clone()).await?;
@@ -95,7 +108,7 @@ pub async fn deploy_contracts(
     let CodeIds {
         operators: operators_code_id,
         task_queue: task_queue_code_id,
-        verifier_simple: verifier_code_id,
+        oracle_verifier: verifier_code_id,
     } = CodeIds::upload(&ctx, wasm_files).await?;
 
     tracing::debug!("Contracts all uploaded successfully, instantiating...");
@@ -130,8 +143,8 @@ pub async fn deploy_contracts(
         )
         .await?;
 
-    tracing::debug!("Verifier Simple Tx Hash: {}", tx_resp.txhash);
-    tracing::debug!("Verifier Simple Address: {}", verifier_addr);
+    tracing::debug!("Oracle Verifier Tx Hash: {}", tx_resp.txhash);
+    tracing::debug!("Oracle Verifier Address: {}", verifier_addr);
 
     let (task_queue_addr, tx_resp) = client
         .contract_instantiate(
@@ -154,27 +167,27 @@ pub async fn deploy_contracts(
     Ok(DeployContractAddrs {
         operators: operators_addr,
         task_queue: task_queue_addr,
-        verifier_simple: verifier_addr,
+        oracle_verifier: verifier_addr,
     })
 }
 
 pub struct DeployContractAddrs {
     pub operators: Address,
     pub task_queue: Address,
-    pub verifier_simple: Address,
+    pub oracle_verifier: Address,
 }
 
 struct WasmFiles {
     operators: Vec<u8>,
     task_queue: Vec<u8>,
-    verifier_simple: Vec<u8>,
+    oracle_verifier: Vec<u8>,
 }
 
 impl WasmFiles {
     pub async fn read(artifacts_path: PathBuf) -> Result<Self> {
         let operators_path = artifacts_path.join("lavs_mock_operators.wasm");
         let task_queue_path = artifacts_path.join("lavs_task_queue.wasm");
-        let verifier_simple_path = artifacts_path.join("lavs_verifier_simple.wasm");
+        let oracle_verifier_path = artifacts_path.join("lavs_oracle_verifier.wasm");
 
         if !operators_path.exists() {
             bail!(
@@ -188,23 +201,23 @@ impl WasmFiles {
                 task_queue_path.display()
             );
         }
-        if !verifier_simple_path.exists() {
+        if !oracle_verifier_path.exists() {
             bail!(
                 "Verifier Simple contract not found at {} (try running collect_wasm.sh)",
-                verifier_simple_path.display()
+                oracle_verifier_path.display()
             );
         }
 
-        let (operators, task_queue, verifier_simple) = try_join!(
+        let (operators, task_queue, oracle_verifier) = try_join!(
             tokio::fs::read(operators_path),
             tokio::fs::read(task_queue_path),
-            tokio::fs::read(verifier_simple_path)
+            tokio::fs::read(oracle_verifier_path)
         )?;
 
         Ok(Self {
             operators,
             task_queue,
-            verifier_simple,
+            oracle_verifier,
         })
     }
 }
@@ -212,7 +225,7 @@ impl WasmFiles {
 struct CodeIds {
     operators: u64,
     task_queue: u64,
-    verifier_simple: u64,
+    oracle_verifier: u64,
 }
 
 impl CodeIds {
@@ -220,7 +233,7 @@ impl CodeIds {
         let WasmFiles {
             operators: operators_wasm,
             task_queue: task_queue_wasm,
-            verifier_simple: verifier_simple_wasm,
+            oracle_verifier: oracle_verifier_wasm,
         } = files;
 
         let client_pool = ctx.create_client_pool().await?;
@@ -259,10 +272,10 @@ impl CodeIds {
 
                     tracing::debug!("Uploading Simple Verifier from: {}", client.addr);
                     let (code_id, tx_resp) = client
-                        .contract_upload_file(verifier_simple_wasm, None)
+                        .contract_upload_file(oracle_verifier_wasm, None)
                         .await?;
-                    tracing::debug!("Simple Verifier Tx Hash: {}", tx_resp.txhash);
-                    tracing::debug!("Simple Verifier Code ID: {}", code_id);
+                    tracing::debug!("Oracle Verifier Tx Hash: {}", tx_resp.txhash);
+                    tracing::debug!("Oracle Verifier Code ID: {}", code_id);
                     anyhow::Ok(code_id)
                 }
             }
@@ -271,7 +284,7 @@ impl CodeIds {
         Ok(Self {
             operators: operators_code_id,
             task_queue: task_queue_code_id,
-            verifier_simple: verifier_code_id,
+            oracle_verifier: verifier_code_id,
         })
     }
 }

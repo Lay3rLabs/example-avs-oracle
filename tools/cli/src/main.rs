@@ -40,7 +40,10 @@ async fn main() -> Result<()> {
             DeployCommand::Contracts {
                 artifacts_path,
                 timeout: task_timeout_seconds,
-                percentage: required_voting_percentage,
+                required_percentage: required_voting_percentage,
+                threshold_percentage,
+                allowed_spread,
+                slashable_spread,
                 operators,
                 requestor,
             } => {
@@ -49,6 +52,9 @@ async fn main() -> Result<()> {
                     artifacts_path,
                     task_timeout_seconds,
                     required_voting_percentage,
+                    threshold_percentage,
+                    allowed_spread,
+                    slashable_spread,
                     operators,
                     requestor,
                 )
@@ -57,7 +63,7 @@ async fn main() -> Result<()> {
                 let addrs = deploy_contracts(ctx, args).await?;
                 tracing::info!("---- All contracts instantiated successfully ----");
                 tracing::info!("Mock Operators: {}", addrs.operators);
-                tracing::info!("Verifier Simple: {}", addrs.verifier_simple);
+                tracing::info!("Oracle Verifier: {}", addrs.oracle_verifier);
                 tracing::info!("Task Queue: {}", addrs.task_queue);
                 // TODO: make a flag to select one of these
                 tracing::info!("export LOCAL_TASK_QUEUE_ADDRESS={}", addrs.task_queue);
