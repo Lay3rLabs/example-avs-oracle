@@ -5,6 +5,7 @@ use cosmwasm_std::{
     StdResult,
 };
 use cw2::set_contract_version;
+use lavs_apis::verifier_simple::OperatorVoteInfoResponse;
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
@@ -90,12 +91,16 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
             task_contract,
             task_id,
             operator,
-        } => to_json_binary(&query::query_operator_vote(
-            deps,
-            task_contract,
-            task_id,
-            operator,
-        )?),
+        } => match query::query_operator_vote(deps, task_contract, task_id, operator)? {
+            Some(vote) => {
+                let vote_info_response = OperatorVoteInfoResponse {
+                    power: vote.power,
+                    result: vote.result.to_string(),
+                };
+                to_json_binary(&vote_info_response)
+            }
+            None => to_json_binary(&None::<OperatorVoteInfoResponse>),
+        },
         QueryMsg::SlashableOperators {} => {
             let slashed_operators: Vec<Addr> = SLASHED_OPERATORS
                 .keys(deps.storage, None, None, Order::Ascending)
