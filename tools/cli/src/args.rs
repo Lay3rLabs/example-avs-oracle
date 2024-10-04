@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use clap::Parser;
 use clap::{Args, Subcommand};
+use cosmwasm_std::Decimal;
 use lavs_apis::id::TaskId;
 use layer_climb_cli::command::{ContractCommand, WalletCommand};
 use std::path::PathBuf;
@@ -84,7 +85,18 @@ pub enum DeployCommand {
         timeout: u64,
         /// The required voting percentage for a task to be approved
         #[clap(short, long, default_value_t = 70)]
-        percentage: u32,
+        required_percentage: u32,
+
+        /// What percentage of the operators must submit their vote
+        #[clap(short, long, default_value_t = Decimal::percent(50))]
+        threshold_percentage: Decimal,
+        /// Maximum allowed difference between the votes of operatos
+        #[clap(short, long, default_value_t = Decimal::percent(20))]
+        allowed_spread: Decimal,
+        /// Differance bigger than `slashable_spread` would slash the operators
+        #[clap(short, long, default_value_t = Decimal::percent(20))]
+        slashable_spread: Decimal,
+
         /// The rules for allowed task requestors
         ///
         /// Examples:
