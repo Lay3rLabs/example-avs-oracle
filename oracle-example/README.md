@@ -54,42 +54,31 @@ and then:
 cargo test
 ```
 
-## Deploy
+## Deploying
 
-Upload the compiled Wasm component to the Wasmatic node.
-```
-curl -X POST --data-binary @../target/wasm32-wasip1/release/oracle_example.wasm http://localhost:8081/upload
+First, let's do a release build of the component:
+
+```bash
+cargo component build --release
 ```
 
-Copy the digest SHA returned and replace the placeholder `{DIGEST}` in the below `curl` command.
+Upload the compiled Wasm component to the Wasmatic node using the `avs-toolkit-cli` CLI tool
+(if you don't have it already, clone the [avs-toolkit repo](https://github.com/Lay3rLabs/avs-toolkit) and `cargo install --path ./tools/cli`).
+Assign a unique name, as it is how your application is going to be distinguished. The examples below assume
+the assigned name is `oracle-example`.
+
+You'll also need to use the task address that was created when you deployed your contract.
 
 This example integrates with the CoinGecko API to retrieve the latest BTCUSD price. You will need to sign up
 and provide an API key, [see instructions](https://docs.coingecko.com/reference/setting-up-your-api-key).
-Replace the `{API_KEY}` below with your key.
+Replace the `<YOUR-API-KEY>` below with your key.
 
-Choose a unique application name string and use in the placeholder `{PLACEHOLDER-UNIQUE-NAME}` below `curl` commands.
-
-```
-read -d '' BODY << "EOF"
-{
-  "name": "{PLACEHOLDER-UNIQUE-NAME}",
-  "digest": "sha256:{DIGEST}",
-  "trigger": {
-    "queue": {
-      "taskQueueAddr": "{TASK-QUEUE-ADDR}",
-      "hdIndex": 1,
-      "pollInterval": 5
-    }
-  },
-  "permissions": {},
-  "envs": [
-    ["API_KEY", "{API_KEY}"]
-  ],
-  "testable": true
-}
-EOF
-
-curl -X POST -H "Content-Type: application/json" http://localhost:8081/app -d "$BODY"
+```bash
+avs-toolkit-cli wasmatic deploy --name oracle-example \
+        --wasm-source ./target/wasm32-wasip1/release/oracle_example.wasm  \
+    --testable \
+    --envs "API_KEY=<YOUR-API-KEY>" \
+    --task <TASK-ADDRESS>
 ```
 
 ## Testing Deployment
@@ -97,13 +86,6 @@ curl -X POST -H "Content-Type: application/json" http://localhost:8081/app -d "$
 To test the deployed application on the Wasmatic node, you can use the test endpoint.
 The server responds with the output of the applicaton without sending the result to the chain.
 
-
 ```bash
-curl --request POST \
-  --url http://localhost:8081/test \
-  --header 'Content-Type: application/json' \
-  --data '{
-  "name": "{PLACEHOLDER-UNIQUE-NAME}",
-  "input": {}
-}'
+avs-toolkit-cli wasmatic test --name oracle-example --input {}
 ```
