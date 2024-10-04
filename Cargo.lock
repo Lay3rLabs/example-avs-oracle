@@ -1148,7 +1148,7 @@ dependencies = [
 [[package]]
 name = "lavs-apis"
 version = "0.1.0"
-source = "git+https://github.com/Lay3rLabs/avs-toolkit#97e3ded1e9c395db98d883a3b2602188e7457e94"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -1164,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "lavs-helpers"
 version = "0.1.0"
-source = "git+https://github.com/Lay3rLabs/avs-toolkit#97e3ded1e9c395db98d883a3b2602188e7457e94"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-std 2.1.4",
  "cw-storage-plus 2.0.0",
@@ -1176,7 +1176,7 @@ dependencies = [
 [[package]]
 name = "lavs-mock-operators"
 version = "0.1.0"
-source = "git+https://github.com/Lay3rLabs/avs-toolkit#97e3ded1e9c395db98d883a3b2602188e7457e94"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
@@ -1193,7 +1193,7 @@ dependencies = [
 [[package]]
 name = "lavs-orch"
 version = "0.1.0"
-source = "git+https://github.com/Lay3rLabs/avs-toolkit#97e3ded1e9c395db98d883a3b2602188e7457e94"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-std 2.1.4",
  "cw-orch",
@@ -1202,7 +1202,7 @@ dependencies = [
 [[package]]
 name = "lavs-task-queue"
 version = "0.1.0"
-source = "git+https://github.com/Lay3rLabs/avs-toolkit#97e3ded1e9c395db98d883a3b2602188e7457e94"
+source = "git+https://github.com/Lay3rLabs/avs-toolkit?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-schema 2.1.4",
  "cosmwasm-std 2.1.4",
