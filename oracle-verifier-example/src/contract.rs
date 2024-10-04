@@ -22,7 +22,7 @@ pub fn instantiate(
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     let fields = [
-        ("threshold_percent", &msg.threshold_percent),
+        ("threshold_percentage", &msg.threshold_percentage),
         ("allowed_spread", &msg.allowed_spread),
         ("slashable_spread", &msg.slashable_spread),
     ];
@@ -46,7 +46,7 @@ pub fn instantiate(
     let op_addr = deps.api.addr_validate(&msg.operator_contract)?;
     let config = Config {
         operator_contract: op_addr,
-        threshold_percent: msg.threshold_percent,
+        threshold_percent: msg.threshold_percentage,
         allowed_spread: msg.allowed_spread,
         slashable_spread: msg.slashable_spread,
         required_percentage: msg.required_percentage,
@@ -76,18 +76,16 @@ pub fn execute(
 }
 
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::SlashableOperators {} => {
-            let slashed_operators: Vec<Addr> = SLASHED_OPERATORS
-                .keys(deps.storage, None, None, Order::Ascending)
-                .collect::<StdResult<Vec<_>>>()?;
-            to_json_binary(&slashed_operators)
-        }
         QueryMsg::Config {} => {
             let config = CONFIG.load(deps.storage)?;
             to_json_binary(&config)
         }
+        QueryMsg::TaskInfo {
+            task_contract,
+            task_id,
+        } => to_json_binary(&query::task_info(deps, env, task_contract, task_id)?),
         QueryMsg::OperatorVote {
             task_contract,
             task_id,
@@ -98,6 +96,12 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             task_id,
             operator,
         )?),
+        QueryMsg::SlashableOperators {} => {
+            let slashed_operators: Vec<Addr> = SLASHED_OPERATORS
+                .keys(deps.storage, None, None, Order::Ascending)
+                .collect::<StdResult<Vec<_>>>()?;
+            to_json_binary(&slashed_operators)
+        }
     }
 }
 
@@ -111,7 +115,7 @@ mod execute {
     use lavs_helpers::verifier::ensure_valid_vote;
     use serde_json::from_str;
 
-    use crate::state::{OperatorVote, PriceResult, SLASHED_OPERATORS, TASKS, VOTES};
+    use crate::state::{record_vote, OperatorVote, PriceResult, SLASHED_OPERATORS, TASKS, VOTES};
 
     use super::*;
 
@@ -145,6 +149,9 @@ mod execute {
             None => return Ok(Response::default()),
         };
 
+        // TODO: currently used only for storing into options storage
+        let _tally = record_vote(deps.storage, &task_queue, task_id, &result, power)?;
+
         let price_result: PriceResult = from_str(&result)?;
         if price_result.price.is_zero() {
             return Err(ContractError::ZeroPrice);
@@ -154,7 +161,7 @@ mod execute {
             deps.storage,
             (&task_queue, task_id, &operator),
             &OperatorVote {
-                price: price_result.price,
+                result: price_result.price,
                 power,
             },
         )?;
@@ -239,7 +246,7 @@ mod execute {
         votes
             .iter()
             .filter(|(_, vote)| {
-                vote.price >= allowed_minimum_price && vote.price <= allowed_maximum_price
+                vote.result >= allowed_minimum_price && vote.result <= allowed_maximum_price
             })
             .collect()
     }
@@ -261,7 +268,7 @@ mod execute {
         votes
             .iter()
             .filter_map(|(operator_addr, vote)| {
-                let price = vote.price;
+                let price = vote.result;
                 if price < slashable_minimum || price > slashable_maximum {
                     Some(operator_addr.clone())
                 } else {
@@ -282,7 +289,7 @@ mod execute {
         total_power: Uint128,
         config: &Config,
     ) -> Result<(Decimal, Vec<Addr>, bool), ContractError> {
-        let mut all_prices: Vec<Decimal> = votes.iter().map(|(_, vote)| vote.price).collect();
+        let mut all_prices: Vec<Decimal> = votes.iter().map(|(_, vote)| vote.result).collect();
 
         let median = calculate_median(&mut all_prices);
 
@@ -306,9 +313,13 @@ mod execute {
 }
 
 mod query {
-    use lavs_apis::id::TaskId;
+    use lavs_apis::{
+        id::TaskId,
+        tasks::TaskStatus,
+        verifier_simple::{TaskInfoResponse, TaskTally},
+    };
 
-    use crate::state::OperatorVote;
+    use crate::state::{OperatorVote, OPTIONS, TASKS};
 
     use super::*;
 
@@ -322,6 +333,41 @@ mod query {
         let operator_addr = deps.api.addr_validate(&operator)?;
         // Load the operator's vote for the given task
         VOTES.may_load(deps.storage, (&task_addr, task_id, &operator_addr))
+    }
+
+    pub fn task_info(
+        deps: Deps,
+        env: Env,
+        task_contract: String,
+        task_id: TaskId,
+    ) -> StdResult<Option<TaskInfoResponse>> {
+        let task_contract = deps.api.addr_validate(&task_contract)?;
+        let info = TASKS.may_load(deps.storage, (&task_contract, task_id))?;
+        if let Some(i) = info {
+            // Check current time and update the status if it expired
+            let status = match i.status {
+                TaskStatus::Open if i.is_expired(&env) => TaskStatus::Expired,
+                x => x,
+            };
+            // Collect the running tallies on the options
+            let tallies: Result<Vec<_>, _> = OPTIONS
+                .range(deps.storage, None, None, cosmwasm_std::Order::Ascending)
+                .map(|r| {
+                    r.map(|((_, _, result), v)| TaskTally {
+                        result,
+                        power: v.power,
+                    })
+                })
+                .collect();
+            let res = TaskInfoResponse {
+                status,
+                power_needed: i.power_required,
+                tallies: tallies?,
+            };
+            Ok(Some(res))
+        } else {
+            Ok(None)
+        }
     }
 }
 
@@ -566,15 +612,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(150),
+                result: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(200),
+                result: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(250),
+                result: Decimal::percent(250),
             };
 
             let votes = vec![
@@ -596,7 +642,7 @@ mod tests {
                     op1,
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::percent(150)
+                        result: Decimal::percent(150)
                     }
                 )
             );
@@ -606,7 +652,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::percent(200)
+                        result: Decimal::percent(200)
                     }
                 )
             );
@@ -616,7 +662,7 @@ mod tests {
                     op3,
                     OperatorVote {
                         power: Uint128::new(300),
-                        price: Decimal::percent(250)
+                        result: Decimal::percent(250)
                     }
                 )
             );
@@ -630,15 +676,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::one(),
+                result: Decimal::one(),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(200),
+                result: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(300),
+                result: Decimal::percent(300),
             };
 
             let votes = vec![
@@ -659,7 +705,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::percent(200)
+                        result: Decimal::percent(200)
                     }
                 )
             );
@@ -673,15 +719,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(50),
+                result: Decimal::percent(50),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(400),
+                result: Decimal::percent(400),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(500),
+                result: Decimal::percent(500),
             };
 
             let votes = vec![
@@ -705,11 +751,11 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(150),
+                result: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(250),
+                result: Decimal::percent(250),
             };
 
             let votes = vec![(op1.clone(), vote1), (op2.clone(), vote2)];
@@ -726,7 +772,7 @@ mod tests {
                     op1,
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::percent(150)
+                        result: Decimal::percent(150)
                     }
                 )
             );
@@ -736,7 +782,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::percent(250)
+                        result: Decimal::percent(250)
                     }
                 )
             );
@@ -817,15 +863,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(150),
+                result: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(200),
+                result: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(250),
+                result: Decimal::percent(250),
             };
 
             let votes = vec![
@@ -849,15 +895,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::one(),
+                result: Decimal::one(),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(200),
+                result: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(300),
+                result: Decimal::percent(300),
             };
 
             let votes = vec![
@@ -882,15 +928,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(50),
+                result: Decimal::percent(50),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::percent(300),
+                result: Decimal::percent(300),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::percent(400),
+                result: Decimal::percent(400),
             };
 
             let votes = vec![
@@ -915,12 +961,12 @@ mod tests {
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
                 // low blound
-                price: Decimal::percent(150),
+                result: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
                 // upper bound
-                price: Decimal::percent(250),
+                result: Decimal::percent(250),
             };
 
             let votes = vec![(op1.clone(), vote1), (op2.clone(), vote2)];
@@ -957,14 +1003,14 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::one(),
+                        result: Decimal::one(),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::one(),
+                        result: Decimal::one(),
                     },
                 ),
             ];
@@ -999,14 +1045,14 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(20),
-                        price: Decimal::one(),
+                        result: Decimal::one(),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(90),
-                        price: Decimal::percent(300),
+                        result: Decimal::percent(300),
                     },
                 ),
             ];
@@ -1042,21 +1088,21 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::percent(150),
+                        result: Decimal::percent(150),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::percent(200),
+                        result: Decimal::percent(200),
                     },
                 ),
                 (
                     op3.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::percent(350),
+                        result: Decimal::percent(350),
                     },
                 ),
             ];
@@ -1102,14 +1148,14 @@ mod tests {
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::percent(10000),
+                        result: Decimal::percent(10000),
                         power: Uint128::new(20),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::percent(10200),
+                        result: Decimal::percent(10200),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1130,7 +1176,7 @@ mod tests {
                     operator3.clone(),
                     OperatorVote {
                         // 98
-                        price: Decimal::percent(9800),
+                        result: Decimal::percent(9800),
                         power: Uint128::new(60),
                     },
                 ),
@@ -1166,21 +1212,21 @@ mod tests {
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::percent(100),
+                        result: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::percent(130),
+                        result: Decimal::percent(130),
                         power: Uint128::new(30),
                     },
                 ),
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::percent(70),
+                        result: Decimal::percent(70),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1215,14 +1261,14 @@ mod tests {
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::percent(100),
+                        result: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::percent(105),
+                        result: Decimal::percent(105),
                         power: Uint128::new(30),
                     },
                 ),
@@ -1230,7 +1276,7 @@ mod tests {
                     operator3.clone(),
                     OperatorVote {
                         // Outlier
-                        price: Decimal::percent(150),
+                        result: Decimal::percent(150),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1265,21 +1311,21 @@ mod tests {
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::percent(100),
+                        result: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::percent(110),
+                        result: Decimal::percent(110),
                         power: Uint128::new(30),
                     },
                 ),
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::percent(120),
+                        result: Decimal::percent(120),
                         power: Uint128::new(20),
                     },
                 ),

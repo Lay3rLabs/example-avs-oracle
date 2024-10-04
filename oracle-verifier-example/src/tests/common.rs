@@ -61,7 +61,7 @@ where
     let msg = InstantiateMsg {
         operator_contract: mock_operators.addr_str().unwrap(),
         // we want all our 3 operators to submit their votes
-        threshold_percent: Decimal::percent(100),
+        threshold_percentage: Decimal::one(),
         allowed_spread: Decimal::percent(10),
         slashable_spread: Decimal::percent(20),
         required_percentage: 100,
@@ -135,7 +135,7 @@ where
 
     let msg = InstantiateMsg {
         operator_contract: mock_operators.addr_str().unwrap(),
-        threshold_percent: Decimal::percent(90),
+        threshold_percentage: Decimal::percent(90),
         allowed_spread: Decimal::percent(5),
         slashable_spread: Decimal::percent(10),
         required_percentage: 70,
