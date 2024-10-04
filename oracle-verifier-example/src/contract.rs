@@ -499,7 +499,7 @@ mod tests {
             // allowed_maximum = 100 * (1 + 1) = 200
 
             assert_eq!(allowed_minimum, Decimal::zero());
-            assert_eq!(allowed_maximum, Decimal::from_str("2").unwrap());
+            assert_eq!(allowed_maximum, Decimal::percent(200));
         }
 
         #[test]
@@ -515,16 +515,16 @@ mod tests {
 
         #[test]
         fn calculate_allowed_range_fractional_median() {
-            let median = Decimal::from_str("15").unwrap();
-            let spread = Decimal::from_str("0.1").unwrap();
+            let median = Decimal::percent(1500);
+            let spread = Decimal::percent(10);
 
             let (allowed_minimum, allowed_maximum) = calculate_allowed_range(median, spread);
 
             // allowed_minimum = 15.0 * (1 - 0.10) = 13.5
             // allowed_maximum = 15.0 * (1 + 0.10) = 16.5
 
-            assert_eq!(allowed_minimum, Decimal::from_str("13.5").unwrap()); // 13.5
-            assert_eq!(allowed_maximum, Decimal::from_str("16.5").unwrap()); // 16.5
+            assert_eq!(allowed_minimum, Decimal::percent(1350)); // 13.5
+            assert_eq!(allowed_maximum, Decimal::percent(1650)); // 16.5
         }
 
         #[test]
@@ -568,15 +568,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::from_str("1.5").unwrap(),
+                price: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::from_str("2.0").unwrap(),
+                price: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::from_str("2.5").unwrap(),
+                price: Decimal::percent(250),
             };
 
             let votes = vec![
@@ -586,8 +586,8 @@ mod tests {
             ];
 
             // Allowed ranges
-            let min_price = Decimal::from_str("1.5").unwrap();
-            let max_price = Decimal::from_str("2.5").unwrap();
+            let min_price = Decimal::percent(150);
+            let max_price = Decimal::percent(250);
 
             let result = filter_valid_votes(&votes, min_price, max_price);
 
@@ -598,7 +598,7 @@ mod tests {
                     op1,
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::from_str("1.5").unwrap()
+                        price: Decimal::percent(150)
                     }
                 )
             );
@@ -608,7 +608,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::from_str("2.0").unwrap()
+                        price: Decimal::percent(200)
                     }
                 )
             );
@@ -618,7 +618,7 @@ mod tests {
                     op3,
                     OperatorVote {
                         power: Uint128::new(300),
-                        price: Decimal::from_str("2.5").unwrap()
+                        price: Decimal::percent(250)
                     }
                 )
             );
@@ -632,15 +632,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::from_str("1.0").unwrap(),
+                price: Decimal::one(),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::from_str("2.0").unwrap(),
+                price: Decimal::percent(200),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::from_str("3.0").unwrap(),
+                price: Decimal::percent(300),
             };
 
             let votes = vec![
@@ -649,8 +649,8 @@ mod tests {
                 (op3.clone(), vote3),
             ];
 
-            let min_price = Decimal::from_str("1.5").unwrap();
-            let max_price = Decimal::from_str("2.5").unwrap();
+            let min_price = Decimal::percent(150);
+            let max_price = Decimal::percent(250);
 
             let result = filter_valid_votes(&votes, min_price, max_price);
 
@@ -661,7 +661,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::from_str("2.0").unwrap()
+                        price: Decimal::percent(200)
                     }
                 )
             );
@@ -675,15 +675,15 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::from_str("0.5").unwrap(),
+                price: Decimal::percent(50),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::from_str("4.0").unwrap(),
+                price: Decimal::percent(400),
             };
             let vote3 = OperatorVote {
                 power: Uint128::new(300),
-                price: Decimal::from_str("5.0").unwrap(),
+                price: Decimal::percent(500),
             };
 
             let votes = vec![
@@ -692,8 +692,8 @@ mod tests {
                 (op3.clone(), vote3),
             ];
 
-            let min_price = Decimal::from_str("1.5").unwrap();
-            let max_price = Decimal::from_str("2.5").unwrap();
+            let min_price = Decimal::percent(150);
+            let max_price = Decimal::percent(250);
 
             let result = filter_valid_votes(&votes, min_price, max_price);
 
@@ -707,17 +707,17 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::from_str("1.5").unwrap(),
+                price: Decimal::percent(150),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
-                price: Decimal::from_str("2.5").unwrap(),
+                price: Decimal::percent(250),
             };
 
             let votes = vec![(op1.clone(), vote1), (op2.clone(), vote2)];
 
-            let min_price = Decimal::from_str("1.5").unwrap();
-            let max_price = Decimal::from_str("2.5").unwrap();
+            let min_price = Decimal::percent(150);
+            let max_price = Decimal::percent(250);
 
             let result = filter_valid_votes(&votes, min_price, max_price);
 
@@ -728,7 +728,7 @@ mod tests {
                     op1,
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::from_str("1.5").unwrap()
+                        price: Decimal::percent(150)
                     }
                 )
             );
@@ -738,7 +738,7 @@ mod tests {
                     op2,
                     OperatorVote {
                         power: Uint128::new(200),
-                        price: Decimal::from_str("2.5").unwrap()
+                        price: Decimal::percent(250)
                     }
                 )
             );
@@ -785,7 +785,7 @@ mod tests {
         fn full_power_threshold() {
             let valid_power = Uint128::new(100);
             let total_power = Uint128::new(100);
-            let threshold_percent = Decimal::percent(100);
+            let threshold_percent = Decimal::one();
 
             let result = is_threshold_met(valid_power, total_power, threshold_percent);
             assert!(
@@ -851,7 +851,7 @@ mod tests {
 
             let vote1 = OperatorVote {
                 power: Uint128::new(100),
-                price: Decimal::percent(100),
+                price: Decimal::one(),
             };
             let vote2 = OperatorVote {
                 power: Uint128::new(200),
@@ -938,8 +938,8 @@ mod tests {
         fn empty_votes() {
             let votes: Vec<(Addr, OperatorVote)> = vec![];
 
-            let slashable_minimum = Decimal::from_str("1.5").unwrap();
-            let slashable_maximum = Decimal::from_str("2.5").unwrap();
+            let slashable_minimum = Decimal::percent(150);
+            let slashable_maximum = Decimal::percent(250);
 
             let result = identify_slashable_operators(&votes, slashable_minimum, slashable_maximum);
             assert_eq!(result.len(), 0, "there should be none from an empty list");
@@ -959,14 +959,14 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::from_str("1.0").unwrap(),
+                        price: Decimal::one(),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(100),
-                        price: Decimal::from_str("1.0").unwrap(),
+                        price: Decimal::one(),
                     },
                 ),
             ];
@@ -982,7 +982,7 @@ mod tests {
             // mocking the power
             let result = process_votes(&votes, Uint128::new(100), &config).unwrap();
 
-            let expected_median = Decimal::percent(100);
+            let expected_median = Decimal::one();
             let expected_slashable_operators: Vec<Addr> = vec![];
             let expected_is_threshold_met = true;
 
@@ -1001,14 +1001,14 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(20),
-                        price: Decimal::from_str("1.0").unwrap(),
+                        price: Decimal::one(),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(90),
-                        price: Decimal::from_str("3.0").unwrap(),
+                        price: Decimal::percent(300),
                     },
                 ),
             ];
@@ -1024,7 +1024,7 @@ mod tests {
             // mocking the power
             let result = process_votes(&votes, Uint128::new(100), &config).unwrap();
 
-            let expected_median = Decimal::from_str("2.0").unwrap();
+            let expected_median = Decimal::percent(200);
             let expected_slashable_operators = vec![op1.clone(), op2.clone()];
             let expected_is_threshold_met = false;
 
@@ -1044,37 +1044,37 @@ mod tests {
                     op1.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::from_str("1.5").unwrap(),
+                        price: Decimal::percent(150),
                     },
                 ),
                 (
                     op2.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::from_str("2.0").unwrap(),
+                        price: Decimal::percent(200),
                     },
                 ),
                 (
                     op3.clone(),
                     OperatorVote {
                         power: Uint128::new(50),
-                        price: Decimal::from_str("3.5").unwrap(),
+                        price: Decimal::percent(350),
                     },
                 ),
             ];
 
             let config = Config {
                 operators: Addr::unchecked("operators"),
-                threshold_percent: Decimal::from_str("0.33").unwrap(),
-                allowed_spread: Decimal::from_str("0.1").unwrap(),
-                slashable_spread: Decimal::from_str("0.2").unwrap(),
+                threshold_percent: Decimal::percent(33),
+                allowed_spread: Decimal::percent(10),
+                slashable_spread: Decimal::percent(20),
                 required_percentage: 70,
             };
 
             // mocking the power
             let result = process_votes(&votes, Uint128::new(100), &config).unwrap();
 
-            let expected_median = Decimal::from_str("2.0").unwrap();
+            let expected_median = Decimal::percent(200);
             let expected_slashable_operators = vec![op1.clone(), op3.clone()];
             let expected_is_threshold_met = true;
 
@@ -1099,18 +1099,19 @@ mod tests {
                 required_percentage: 70,
             };
 
+            // submitted are 100.00 and 102.00
             let votes = vec![
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("100").unwrap(),
+                        price: Decimal::percent(10000),
                         power: Uint128::new(20),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("102").unwrap(),
+                        price: Decimal::percent(10200),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1120,7 +1121,8 @@ mod tests {
                 process_votes(&votes, total_power, &config).unwrap();
 
             assert!(!is_threshold_met);
-            assert_eq!(median, Decimal::from_str("101").unwrap());
+            // 101
+            assert_eq!(median, Decimal::percent(10100));
             assert_eq!(slashed_operators.len(), 0);
 
             let votes_with_op3 = vec![
@@ -1129,7 +1131,8 @@ mod tests {
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("98").unwrap(),
+                        // 98
+                        price: Decimal::percent(9800),
                         power: Uint128::new(60),
                     },
                 ),
@@ -1139,8 +1142,8 @@ mod tests {
                 process_votes(&votes_with_op3, total_power, &config).unwrap();
 
             assert!(is_threshold_met);
-            // NOTE: This would have ot change once the weighted calculation of votes is in place
-            assert_eq!(median, Decimal::from_str("100").unwrap());
+            // 100
+            assert_eq!(median, Decimal::percent(10000));
             assert_eq!(slashed_operators.len(), 0);
         }
 
@@ -1154,31 +1157,32 @@ mod tests {
 
             let config = Config {
                 operators: Addr::unchecked("operator_contract"),
-                threshold_percent: Decimal::percent(100),
+                threshold_percent: Decimal::one(),
                 allowed_spread: Decimal::percent(10),
                 slashable_spread: Decimal::percent(20),
                 required_percentage: 70,
             };
 
+            // submited are 1.0 1.3 and 0.7
             let votes = vec![
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("100").unwrap(),
+                        price: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("130").unwrap(),
+                        price: Decimal::percent(130),
                         power: Uint128::new(30),
                     },
                 ),
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("70").unwrap(),
+                        price: Decimal::percent(70),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1188,8 +1192,7 @@ mod tests {
                 process_votes(&votes, total_power, &config).unwrap();
 
             assert!(!is_threshold_met);
-            // NOTE: This would have ot change once the weighted calculation of votes is in place
-            assert_eq!(median, Decimal::from_str("100").unwrap());
+            assert_eq!(median, Decimal::percent(100));
             assert_eq!(slashed_operators.len(), 2);
         }
 
@@ -1209,25 +1212,27 @@ mod tests {
                 required_percentage: 70,
             };
 
+            // submited are 1.0 1.05 and 1.5
             let votes = vec![
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("100").unwrap(),
+                        price: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("105").unwrap(),
+                        price: Decimal::percent(105),
                         power: Uint128::new(30),
                     },
                 ),
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("150").unwrap(), // Outlier
+                        // Outlier
+                        price: Decimal::percent(150),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1237,8 +1242,7 @@ mod tests {
                 process_votes(&votes, total_power, &config).unwrap();
 
             assert!(is_threshold_met);
-            //NOTE: This will change with weighted median calculation
-            assert_eq!(median, Decimal::from_str("105").unwrap());
+            assert_eq!(median, Decimal::percent(105));
             assert_eq!(slashed_operators, vec![operator3.clone()]);
         }
 
@@ -1252,31 +1256,32 @@ mod tests {
 
             let config = Config {
                 operators: Addr::unchecked("operator_contract"),
-                threshold_percent: Decimal::percent(100),
+                threshold_percent: Decimal::one(),
                 allowed_spread: Decimal::percent(50),
                 slashable_spread: Decimal::percent(60),
                 required_percentage: 70,
             };
 
+            // submitted are 1.0 1.1 and 1.2
             let votes = vec![
                 (
                     operator1.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("100").unwrap(),
+                        price: Decimal::percent(100),
                         power: Uint128::new(50),
                     },
                 ),
                 (
                     operator2.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("110").unwrap(),
+                        price: Decimal::percent(110),
                         power: Uint128::new(30),
                     },
                 ),
                 (
                     operator3.clone(),
                     OperatorVote {
-                        price: Decimal::from_str("120").unwrap(),
+                        price: Decimal::percent(120),
                         power: Uint128::new(20),
                     },
                 ),
@@ -1285,7 +1290,7 @@ mod tests {
             let (median, slashed_operators, is_threshold_met) =
                 process_votes(&votes, total_power, &config).unwrap();
 
-            assert_eq!(median, Decimal::from_str("110").unwrap());
+            assert_eq!(median, Decimal::percent(110));
             assert!(is_threshold_met);
             assert_eq!(slashed_operators.len(), 0);
         }

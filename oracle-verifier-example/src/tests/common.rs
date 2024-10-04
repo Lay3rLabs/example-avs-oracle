@@ -102,7 +102,7 @@ where
         }
     );
 
-    let median_price = Decimal::from_str("100").unwrap();
+    let median_price = Decimal::percent(10000);
     let task_result = status.result.unwrap();
     assert_eq!(task_result, json!({"price": median_price.to_string()}));
 
