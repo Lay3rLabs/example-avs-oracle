@@ -1,6 +1,6 @@
 use crate::{
     args::{TargetEnvironment, TaskQueueArgs},
-    commands::{operator::OperatorQuerier, verifier::SimpleVerifierQuerier},
+    commands::{operator::OperatorQuerier, verifier::OracleVerifierQuerier},
     context::AppContext,
 };
 use anyhow::{bail, Context, Result};
@@ -128,7 +128,7 @@ impl TaskQueueQuerier {
             .parse_address(&contract_config.verifier)?;
 
         let verifier_querier =
-            SimpleVerifierQuerier::new(self.ctx.clone(), verifier_addr.clone()).await?;
+            OracleVerifierQuerier::new(self.ctx.clone(), verifier_addr.clone()).await?;
 
         let operator_addr = verifier_querier.operator_addr().await?;
 

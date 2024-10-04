@@ -134,9 +134,12 @@ pub async fn deploy_contracts(
             client.addr.clone(),
             verifier_code_id,
             "Verifier Simple",
-            &lavs_verifier_simple::msg::InstantiateMsg {
+            &oracle_verifier::msg::InstantiateMsg {
                 operator_contract: operators_addr.to_string(),
                 required_percentage: required_voting_percentage,
+                threshold_percentage,
+                allowed_spread,
+                slashable_spread,
             },
             vec![],
             None,
