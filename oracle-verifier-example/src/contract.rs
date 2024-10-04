@@ -112,16 +112,17 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
-    use cosmwasm_std::{to_json_binary, Decimal, Order, Uint128, WasmMsg};
+    use std::str::FromStr;
+
+    use cosmwasm_std::{from_json, to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
     use lavs_apis::{
         id::TaskId,
-        tasks::{TaskExecuteMsg, TaskStatus},
+        tasks::{ResponseType, TaskExecuteMsg, TaskStatus},
     };
     use lavs_helpers::verifier::ensure_valid_vote;
-    use serde_json::from_str;
 
-    use crate::state::{record_vote, OperatorVote, PriceResult, SLASHED_OPERATORS, TASKS, VOTES};
+    use crate::state::{record_vote, OperatorVote, SLASHED_OPERATORS, TASKS, VOTES};
 
     use super::*;
 
@@ -155,21 +156,14 @@ mod execute {
             None => return Ok(Response::default()),
         };
 
-        // TODO: currently used only for storing into options storage
-        let _tally = record_vote(deps.storage, &task_queue, task_id, &result, power)?;
-
-        let price_result: PriceResult = from_str(&result)?;
-        if price_result.price.is_zero() {
-            return Err(ContractError::ZeroPrice);
-        }
-
-        VOTES.save(
+        // Update the vote and check the total power on this result, also recording the operators vote
+        let tally = record_vote(
             deps.storage,
-            (&task_queue, task_id, &operator),
-            &OperatorVote {
-                result: price_result.price,
-                power,
-            },
+            &task_queue,
+            task_id,
+            &operator,
+            &result,
+            power,
         )?;
 
         let all_votes: Vec<(Addr, OperatorVote)> = VOTES
@@ -187,7 +181,7 @@ mod execute {
         let config = CONFIG.load(deps.storage)?;
 
         let (median, slashable_operators, is_threshold_met) =
-            process_votes(&all_votes, total_power, &config)?;
+            process_votes(&all_votes, tally, &config)?;
 
         if is_threshold_met {
             for operator in slashable_operators {
@@ -197,7 +191,7 @@ mod execute {
             task_data.status = TaskStatus::Completed;
             TASKS.save(deps.storage, (&task_queue, task_id), &task_data)?;
 
-            let response = serde_json::json!(PriceResult { price: median });
+            let response: ResponseType = from_json(&result)?;
 
             let msg = WasmMsg::Execute {
                 contract_addr: task_queue.to_string(),

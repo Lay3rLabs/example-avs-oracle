@@ -39,4 +39,7 @@ pub enum ContractError {
 
     #[error("{0}")]
     Verifier(#[from] VerifierError),
+
+    #[error("Invalid price provided")]
+    InvalidPrice,
 }
