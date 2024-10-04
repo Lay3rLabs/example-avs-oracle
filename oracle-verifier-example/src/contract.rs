@@ -86,21 +86,22 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::TaskInfo {
             task_contract,
             task_id,
-        } => to_json_binary(&query::task_info(deps, env, task_contract, task_id)?),
+        } => Ok(to_json_binary(&query::task_info(
+            deps,
+            env,
+            task_contract,
+            task_id,
+        )?)?),
         QueryMsg::OperatorVote {
             task_contract,
             task_id,
             operator,
-        } => match query::query_operator_vote(deps, task_contract, task_id, operator)? {
-            Some(vote) => {
-                let vote_info_response = OperatorVoteInfoResponse {
-                    power: vote.power,
-                    result: vote.result.to_string(),
-                };
-                to_json_binary(&vote_info_response)
-            }
-            None => to_json_binary(&None::<OperatorVoteInfoResponse>),
-        },
+        } => Ok(to_json_binary(&query::query_operator_vote(
+            deps,
+            task_contract,
+            task_id,
+            operator,
+        )?)?),
         QueryMsg::SlashableOperators {} => {
             let slashed_operators: Vec<Addr> = SLASHED_OPERATORS
                 .keys(deps.storage, None, None, Order::Ascending)
@@ -324,7 +325,7 @@ mod query {
         verifier_simple::{TaskInfoResponse, TaskTally},
     };
 
-    use crate::state::{OperatorVote, OPTIONS, TASKS};
+    use crate::state::{OPTIONS, TASKS};
 
     use super::*;
 
@@ -333,11 +334,16 @@ mod query {
         task_contract: String,
         task_id: TaskId,
         operator: String,
-    ) -> StdResult<Option<OperatorVote>> {
-        let task_addr = deps.api.addr_validate(&task_contract)?;
-        let operator_addr = deps.api.addr_validate(&operator)?;
-        // Load the operator's vote for the given task
-        VOTES.may_load(deps.storage, (&task_addr, task_id, &operator_addr))
+    ) -> StdResult<Option<OperatorVoteInfoResponse>> {
+        let task_contract = deps.api.addr_validate(&task_contract)?;
+        let operator = deps.api.addr_validate(&operator)?;
+        let vote = VOTES
+            .may_load(deps.storage, (&task_contract, task_id, &operator))?
+            .map(|v| OperatorVoteInfoResponse {
+                power: v.power,
+                result: v.result.to_string(),
+            });
+        Ok(vote)
     }
 
     pub fn task_info(
