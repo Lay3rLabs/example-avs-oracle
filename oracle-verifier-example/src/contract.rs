@@ -190,7 +190,9 @@ mod execute {
             task_data.status = TaskStatus::Completed;
             TASKS.save(deps.storage, (&task_queue, task_id), &task_data)?;
 
-            let response: ResponseType = from_json(&median)?;
+            let response: ResponseType = serde_json::json!({
+                "price": median.to_string()
+            });
 
             let msg = WasmMsg::Execute {
                 contract_addr: task_queue.to_string(),
