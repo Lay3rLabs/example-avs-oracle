@@ -18,7 +18,7 @@ serde_json = "1.0.128"
 
 lavs-mock-operators = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
 lavs-task-queue = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
-lavs-verifier-simple = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
+oracle-verifier = { path = "oracle-verifier-example" }
 
 lavs-apis = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
 
