@@ -83,7 +83,7 @@ In order to make use of the oracle example, you need to obtain the CoinGecko API
 
 # Testable is optional if you want to try the next step
 # Do not use for production deployments
-cargo run -- --target local wasmatic deploy --name demo1 \
+cargo run -- --target=local wasmatic deploy --name demo1 \
     --wasm-source ../../components/oracle_example.wasm  \
     --testable \
     --envs "API_KEY=<YOUR_KEY_HERE>" \
@@ -102,7 +102,7 @@ docker logs -f localnode-wasmatic-1
 This can only be done if `--testable` was provided above
 
 ```bash
-cargo run -- --target local wasmatic test --name demo1 --input '{}'
+cargo run -- --target=local wasmatic test --name demo1 --input '{}'
 ```
 
 It will parse the input as if you pushed it to the task queue and return
