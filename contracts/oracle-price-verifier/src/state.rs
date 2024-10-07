@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use cosmwasm_schema::cw_serde;
 use cosmwasm_std::{Addr, Decimal, StdError, Storage, Uint128};
 use cw_storage_plus::{Item, Map};
@@ -23,7 +21,7 @@ pub struct Config {
 #[cw_serde]
 pub struct OperatorVote {
     pub power: Uint128,
-    pub result: Decimal,
+    pub result: String,
 }
 
 /// Metadata for a task option with some votes - indexed by (task_queue, task_id, result)
@@ -34,7 +32,7 @@ pub struct TaskOption {
 
 #[cw_serde]
 struct PriceResult {
-    pub price: String,
+    pub price: Decimal,
 }
 
 /// This assumes a previous check was made that the operator has not yet voted.
@@ -52,7 +50,7 @@ pub fn record_vote(
 
     let vote = OperatorVote {
         power,
-        result: Decimal::from_str(&price_result.price)?,
+        result: price_result.price.to_string(),
     };
 
     VOTES

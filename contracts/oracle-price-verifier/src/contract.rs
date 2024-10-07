@@ -112,6 +112,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 }
 
 mod execute {
+    use std::str::FromStr;
 
     use cosmwasm_std::{to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
@@ -247,7 +248,8 @@ mod execute {
         votes
             .iter()
             .filter(|(_, vote)| {
-                vote.result >= allowed_minimum_price && vote.result <= allowed_maximum_price
+                Decimal::from_str(&vote.result).unwrap() >= allowed_minimum_price
+                    && Decimal::from_str(&vote.result).unwrap() <= allowed_maximum_price
             })
             .collect()
     }
@@ -269,7 +271,7 @@ mod execute {
         votes
             .iter()
             .filter_map(|(operator_addr, vote)| {
-                let price = vote.result;
+                let price = Decimal::from_str(&vote.result).unwrap();
                 if price < slashable_minimum || price > slashable_maximum {
                     Some(operator_addr.clone())
                 } else {
@@ -290,7 +292,10 @@ mod execute {
         total_power: Uint128,
         config: &Config,
     ) -> Result<(Decimal, Vec<Addr>, bool), ContractError> {
-        let mut all_prices: Vec<Decimal> = votes.iter().map(|(_, vote)| vote.result).collect();
+        let mut all_prices: Vec<Decimal> = votes
+            .iter()
+            .map(|(_, vote)| Decimal::from_str(&vote.result).unwrap())
+            .collect();
 
         let median = calculate_median(&mut all_prices);
 
