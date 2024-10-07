@@ -19,6 +19,7 @@ pub struct DeployContractArgs {
 }
 
 impl DeployContractArgs {
+    #[allow(clippy::too_many_arguments)]
     pub async fn parse(
         ctx: &AppContext,
         artifacts_path: PathBuf,
@@ -133,7 +134,7 @@ pub async fn deploy_contracts(
         .contract_instantiate(
             client.addr.clone(),
             verifier_code_id,
-            "Verifier Simple",
+            "Oracle Verifier",
             &lavs_oracle_verifier::msg::InstantiateMsg {
                 operator_contract: operators_addr.to_string(),
                 required_percentage: required_voting_percentage,
@@ -273,7 +274,7 @@ impl CodeIds {
                 async move {
                     let client = client_pool.get().await.map_err(|e| anyhow!("{e:?}"))?;
 
-                    tracing::debug!("Uploading Simple Verifier from: {}", client.addr);
+                    tracing::debug!("Uploading Oracle Verifier from: {}", client.addr);
                     let (code_id, tx_resp) = client
                         .contract_upload_file(oracle_verifier_wasm, None)
                         .await?;

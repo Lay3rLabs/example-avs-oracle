@@ -29,6 +29,6 @@ impl OracleVerifierQuerier {
         let config = self.config().await?;
         self.ctx
             .chain_config()?
-            .parse_address(&config.operator_contract.to_string())
+            .parse_address(config.operator_contract.as_ref())
     }
 }
