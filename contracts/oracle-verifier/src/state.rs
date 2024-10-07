@@ -33,7 +33,7 @@ pub struct TaskOption {
 }
 
 #[cw_serde]
-struct PriceResult {
+pub struct PriceResult {
     pub price: String,
 }
 

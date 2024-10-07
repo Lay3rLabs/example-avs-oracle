@@ -1,5 +1,5 @@
 [workspace]
-members = ["contracts/*", "wasi/*"]
+members = ["contracts/*", "wasi/*", "tools/cli"]
 resolver = "2"
 
 [workspace.package]
@@ -18,9 +18,11 @@ serde_json = "1.0.128"
 
 lavs-mock-operators = { path = "contracts/mock-operators" }
 lavs-task-queue = { path = "contracts/task-queue" }
-oracle-verifier = { path = "contracts/oracle-verifier-example" }
+lavs-oracle-verifier = { path = "contracts/oracle-verifier" }
 
 lavs-apis = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
+layer-climb = { git = "https://github.com/Lay3rLabs/climb.git", rev = "5436381a7c35344325bd27ea32261ebcd2d76baa" }
+layer-climb-cli = { git = "https://github.com/Lay3rLabs/climb.git", rev = "5436381a7c35344325bd27ea32261ebcd2d76baa" }
 
 # mock-operator and task-queue
 cosmwasm-schema  = "2.1.4"
@@ -35,3 +37,17 @@ thiserror        = "1.0.59"
 cw-multi-test = "0.20"
 lavs-arch = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
 lavs-orch = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
+
+# dev deps
+clap = { version = "4.5.1", features = ["derive", "env"] }
+
+# tooling deps
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+tracing = "0.1.40"
+dotenvy = {version = "0.15.7", features = ["cli"]}
+tracing-subscriber = "0.3.18"
+rand = "0.8"
+deadpool = "0.12.1"
+reqwest = { version = "0.11", features = ["json", "rustls-tls", "stream", "blocking", "multipart"] }
+sha2 = "0.10"
