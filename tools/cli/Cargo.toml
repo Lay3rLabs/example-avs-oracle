@@ -6,7 +6,7 @@ license = "Apache-2.0"
 
 [dependencies]
 lavs-mock-operators = {workspace = true}
-oracle-verifier = {workspace = true}
+lavs-oracle-verifier = {workspace = true}
 lavs-task-queue = {workspace = true}
 lavs-apis = { workspace = true }
 layer-climb = {workspace = true}

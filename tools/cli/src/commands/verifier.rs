@@ -1,8 +1,8 @@
 use crate::context::AppContext;
 use anyhow::Result;
+use lavs_oracle_verifier::msg::QueryMsg;
+use lavs_oracle_verifier::state::Config;
 use layer_climb::prelude::*;
-use oracle_verifier::msg::QueryMsg;
-use oracle_verifier::state::Config;
 
 pub struct OracleVerifierQuerier {
     pub ctx: AppContext,
