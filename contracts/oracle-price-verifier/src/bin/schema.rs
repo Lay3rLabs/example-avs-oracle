@@ -1,6 +1,6 @@
 use cosmwasm_schema::write_api;
 
-use oracle_verifier::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
+use lavs_oracle_price_verifier::msg::{ExecuteMsg, InstantiateMsg, QueryMsg};
 
 fn main() {
     write_api! {
