@@ -314,8 +314,8 @@ dependencies = [
  "dotenvy",
  "futures",
  "lavs-apis",
- "lavs-mock-operators",
- "lavs-task-queue",
+ "lavs-mock-operators 0.1.0 (git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2)",
+ "lavs-task-queue 0.1.0 (git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2)",
  "layer-climb",
  "layer-climb-cli",
  "oracle-verifier",
@@ -2115,6 +2115,24 @@ dependencies = [
 [[package]]
 name = "lavs-mock-operators"
 version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema 2.1.4",
+ "cosmwasm-std 2.1.4",
+ "cw-multi-test",
+ "cw-orch",
+ "cw-storage-plus 2.0.0",
+ "cw-utils 2.0.0",
+ "cw2 2.0.0",
+ "lavs-apis",
+ "lavs-orch",
+ "schemars",
+ "serde",
+ "thiserror",
+]
+
+[[package]]
+name = "lavs-mock-operators"
+version = "0.1.0"
 source = "git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2#bdc342892a3115711a61b7cf206ce7c529cb22e0"
 dependencies = [
  "cosmwasm-schema 2.1.4",
@@ -2136,6 +2154,25 @@ source = "git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2#bdc342892a
 dependencies = [
  "cosmwasm-std 2.1.4",
  "cw-orch",
+]
+
+[[package]]
+name = "lavs-task-queue"
+version = "0.1.0"
+dependencies = [
+ "cosmwasm-schema 2.1.4",
+ "cosmwasm-std 2.1.4",
+ "cw-multi-test",
+ "cw-orch",
+ "cw-storage-plus 2.0.0",
+ "cw-utils 2.0.0",
+ "cw2 2.0.0",
+ "lavs-apis",
+ "lavs-orch",
+ "schemars",
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -2539,9 +2576,9 @@ dependencies = [
  "cw2 2.0.0",
  "lavs-apis",
  "lavs-helpers",
- "lavs-mock-operators",
+ "lavs-mock-operators 0.1.0 (git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2)",
  "lavs-orch",
- "lavs-task-queue",
+ "lavs-task-queue 0.1.0 (git+https://github.com/Lay3rLabs/avs-toolkit.git?tag=v0.1.2)",
  "schemars",
  "serde",
  "serde_json",
