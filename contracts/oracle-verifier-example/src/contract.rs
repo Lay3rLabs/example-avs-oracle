@@ -113,7 +113,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 mod execute {
 
-    use cosmwasm_std::{from_json, to_json_binary, Decimal, Order, Uint128, WasmMsg};
+    use cosmwasm_std::{to_json_binary, Decimal, Order, Uint128, WasmMsg};
     use cw_utils::nonpayable;
     use lavs_apis::{
         id::TaskId,

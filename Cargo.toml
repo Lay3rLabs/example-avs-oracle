@@ -1,5 +1,5 @@
 [workspace]
-members = ["oracle-example", "oracle-verifier-example"]
+members = ["contracts/*", "wasi/*"]
 resolver = "2"
 
 [workspace.package]
