@@ -86,7 +86,7 @@ In order to make use of the oracle example, you need to obtain the CoinGecko API
 cargo run -- --target=local wasmatic deploy --name demo1 \
     --wasm-source ../../components/oracle_example.wasm  \
     --testable \
-    --envs "API_KEY=<YOUR_KEY_HERE>" \
+    --envs "API_KEY=<YOUR_COINGECKO_API_KEY>" \
     --task $LOCAL_TASK_QUEUE_ADDRESS
 ```
 
