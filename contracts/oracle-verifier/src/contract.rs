@@ -117,7 +117,7 @@ mod execute {
     use cw_utils::nonpayable;
     use lavs_apis::{
         id::TaskId,
-        tasks::{ResponseType, TaskExecuteMsg, TaskStatus},
+        tasks::{TaskExecuteMsg, TaskStatus},
     };
     use lavs_helpers::verifier::ensure_valid_vote;
 
