@@ -12,5 +12,26 @@ rust-version  = "1.78.0"
 [workspace.dependencies]
 anyhow        = "1"
 layer-wasi = { git = "https://github.com/Lay3rLabs/avs-toolkit", version = "0.1.0" }
+cosmwasm-std     = "2.1.4"
 serde = { version = "1.0.210", features = [ "derive" ] }
 serde_json = "1.0.128"
+
+lavs-mock-operators = { path = "contracts/mock-operators" }
+lavs-task-queue = { path = "contracts/task-queue" }
+oracle-verifier = { path = "contracts/oracle-verifier-example" }
+
+lavs-apis = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
+
+# mock-operator and task-queue
+cosmwasm-schema  = "2.1.4"
+cw-orch = "0.25.0"
+cw-orch-core = "2"
+cw-storage-plus  = "2.0.0"
+cw-utils         = "2.0.0"
+cw-controllers   = "2.0.0"
+cw2              = "2.0.0"
+schemars         = "0.8.17"
+thiserror        = "1.0.59"
+cw-multi-test = "0.20"
+lavs-arch = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
+lavs-orch = { git = "https://github.com/Lay3rLabs/avs-toolkit.git", tag = "v0.1.2" }
