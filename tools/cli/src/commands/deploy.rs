@@ -191,7 +191,7 @@ impl WasmFiles {
     pub async fn read(artifacts_path: PathBuf) -> Result<Self> {
         let operators_path = artifacts_path.join("lavs_mock_operators.wasm");
         let task_queue_path = artifacts_path.join("lavs_task_queue.wasm");
-        let oracle_verifier_path = artifacts_path.join("oracle_verifier.wasm");
+        let oracle_verifier_path = artifacts_path.join("lavs_oracle_verifier.wasm");
 
         if !operators_path.exists() {
             bail!(
